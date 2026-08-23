@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+junit.xml
+junit-*.xml
+
+# Local environment -- never commit real secrets. See .env.example.
+.env
+.env.*
+!.env.example
+
+# Local databases / scratch
+*.sqlite3
+*.db
+
+# Generated evaluation reports. The dataset and the runner are tracked; a
+# report is an output of a particular run, and committing one invites reading
+# a stale number as if it described the current code.
+evals/reports/
