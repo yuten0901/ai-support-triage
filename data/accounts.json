@@ -1,0 +1,7 @@
+[
+  {"account_id": "ACC-2001", "plan": "standard",   "opened_days_ago": 420, "locked": false},
+  {"account_id": "ACC-2002", "plan": "enterprise", "opened_days_ago": 900, "locked": false},
+  {"account_id": "ACC-2003", "plan": "standard",   "opened_days_ago": 60,  "locked": true},
+  {"account_id": "ACC-2004", "plan": "enterprise", "opened_days_ago": 210, "locked": false},
+  {"account_id": "ACC-2005", "plan": "standard",   "opened_days_ago": 15,  "locked": false}
+]
