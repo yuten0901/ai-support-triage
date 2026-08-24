@@ -92,7 +92,9 @@ class Settings(BaseSettings):
         ge=0,
         description="Hard step limit. The workflow is a bounded state machine, not an open loop.",
     )
-    max_tool_attempts: int = Field(default=2, ge=1, description="Per tool call, for transient failures.")
+    max_tool_attempts: int = Field(
+        default=2, ge=1, description="Per tool call, for transient failures."
+    )
     run_deadline_seconds: float = Field(default=60.0, gt=0)
     run_cost_budget_usd: float = Field(
         default=0.50,

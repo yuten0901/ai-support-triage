@@ -70,6 +70,8 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# The local recorder is invoked synchronously before its loop advances.
+"app/ai/client.py" = ["B023"]
 # FastAPI style: callables in argument defaults are the documented pattern.
 "app/api/**" = ["B008"]
 "fake_anthropic/**" = ["B008"]

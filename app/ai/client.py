@@ -400,23 +400,35 @@ class StructuredCaller:
             latency_ms = int((self._clock.monotonic() - started) * 1000)
             usage = response.usage
             cost = pricing.estimate_cost(self._model, usage)
+            response_for_record = response
+            attempt_kind_for_record = attempt_kind
+            attempt_number_for_record = calls_this_step
+            latency_ms_for_record = latency_ms
+            usage_for_record = usage
+            cost_for_record = cost
 
-            def _record(outcome: str, *, detail: str | None = None, note: str | None = None) -> None:
+            def _record(
+                outcome: str, *, detail: str | None = None, note: str | None = None
+            ) -> None:  # noqa: B023 - invoked before the next loop iteration
                 budget.record(
                     CallRecord(
                         step_kind=step_kind.value,
                         prompt_name=prompt.name,
                         prompt_version=prompt.version,
                         provider=self._provider.name,
-                        model=response.model or self._model,
-                        attempt_kind=attempt_kind,
-                        attempt_number=calls_this_step,
+                        model=response_for_record.model or self._model,
+                        attempt_kind=attempt_kind_for_record,
+                        attempt_number=attempt_number_for_record,
                         outcome=outcome,
-                        latency_ms=latency_ms,
-                        request_id=response.request_id,
-                        input_tokens=usage.input_tokens if usage.reported else None,
-                        output_tokens=usage.output_tokens if usage.reported else None,
-                        estimated_cost_usd=cost,
+                        latency_ms=latency_ms_for_record,
+                        request_id=response_for_record.request_id,
+                        input_tokens=(
+                            usage_for_record.input_tokens if usage_for_record.reported else None
+                        ),
+                        output_tokens=(
+                            usage_for_record.output_tokens if usage_for_record.reported else None
+                        ),
+                        estimated_cost_usd=cost_for_record,
                         error_detail=detail,
                         note=note,
                     )
@@ -469,9 +481,7 @@ class StructuredCaller:
                 )
             messages.append(Message(role="assistant", content=response.text))
             messages.append(
-                Message(
-                    role="user", content=self._repair_template.format(error=error_message)
-                )
+                Message(role="user", content=self._repair_template.format(error=error_message))
             )
             attempt_kind = "repair"
 

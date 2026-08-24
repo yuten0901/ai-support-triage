@@ -119,9 +119,7 @@ class TriageRun(Base):
     latency_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     started_at: Mapped[datetime] = _utcnow_column()
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     ticket: Mapped[Ticket] = relationship(back_populates="runs")
     steps: Mapped[list[RunStep]] = relationship(
@@ -292,9 +290,7 @@ class Review(Base):
     #: available of how good the model's drafts actually are.
     final_reply: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = _utcnow_column()
-    decided_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     run: Mapped[TriageRun] = relationship(back_populates="review")
 

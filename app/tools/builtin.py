@@ -47,13 +47,15 @@ class _Args(BaseModel):
 
 class OrderArgs(_Args):
     order_id: str = Field(
-        pattern=_ORDER_ID, description="Order reference exactly as the customer wrote it, e.g. ORD-10042"
+        pattern=_ORDER_ID,
+        description="Order reference exactly as the customer wrote it, e.g. ORD-10042",
     )
 
 
 class AccountArgs(_Args):
     account_id: str = Field(
-        pattern=_ACCOUNT_ID, description="Account reference exactly as the customer wrote it, e.g. ACC-2001"
+        pattern=_ACCOUNT_ID,
+        description="Account reference exactly as the customer wrote it, e.g. ACC-2001",
     )
 
 
@@ -155,7 +157,9 @@ def build_registry(store: BackingStore, clock: Clock, rules: RefundRules) -> Too
             return ToolOutcome(
                 tool_name="check_refund_eligibility",
                 status="not_found",
-                rendered=f"No order exists with id {args.order_id}, so eligibility cannot be assessed.",
+                rendered=(
+                    f"No order exists with id {args.order_id}, so eligibility cannot be assessed."
+                ),
             )
 
         account = store.get_account(order.account_id)
@@ -219,9 +223,7 @@ def evaluate_refund_eligibility(
     """
     days_since_order = (today - order.placed_on).days
     plan = account.plan if account is not None else "unknown"
-    window = (
-        rules.enterprise_window_days if plan == "enterprise" else rules.standard_window_days
-    )
+    window = rules.enterprise_window_days if plan == "enterprise" else rules.standard_window_days
 
     if order.final_sale:
         eligible, reason = False, "Item was a final-sale purchase."
@@ -235,9 +237,7 @@ def evaluate_refund_eligibility(
         eligible, reason = True, f"Within the {window}-day window for the {plan} plan."
     else:
         eligible = False
-        reason = (
-            f"{days_since_order} days have passed; the {plan} plan window is {window} days."
-        )
+        reason = f"{days_since_order} days have passed; the {plan} plan window is {window} days."
 
     return {
         "order_id": order.order_id,

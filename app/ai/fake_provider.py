@@ -51,32 +51,76 @@ MODEL = "fake-triage-v1"
 _ORDER_ID = re.compile(r"\bORD-\d{4,8}\b")
 _ACCOUNT_ID = re.compile(r"\bACC-\d{4,8}\b")
 #: Currency amounts written the way customers write them.
-_AMOUNT = re.compile(r"(?:(?P<symbol>[$£€])\s?)?(?P<value>\d{1,6}(?:[.,]\d{2})?)\s*(?P<code>USD|EUR|GBP)?")
+_AMOUNT = re.compile(
+    r"(?:(?P<symbol>[$£€])\s?)?(?P<value>\d{1,6}(?:[.,]\d{2})?)\s*(?P<code>USD|EUR|GBP)?"
+)
 
 _SYMBOL_TO_CODE = {"$": "USD", "£": "GBP", "€": "EUR"}
 
 #: Category rules, in priority order. First list with a hit wins, so the more
 #: specific categories are listed before the general ones.
 _CATEGORY_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("spam_or_noise", ("unsubscribe", "limited time offer", "crypto investment", "click here to claim")),
+    (
+        "spam_or_noise",
+        ("unsubscribe", "limited time offer", "crypto investment", "click here to claim"),
+    ),
     (
         "account_access",
         (
-            "log in", "login", "sign in", "signin", "password", "locked out", "locked",
-            "two-factor", "two factor", "2fa", "mfa", "authenticator", "verification code",
+            "log in",
+            "login",
+            "sign in",
+            "signin",
+            "password",
+            "locked out",
+            "locked",
+            "two-factor",
+            "two factor",
+            "2fa",
+            "mfa",
+            "authenticator",
+            "verification code",
         ),
     ),
     (
         "billing_refund",
-        ("refund", "money back", "charged", "charge", "invoice", "billed", "overcharged", "reimburse"),
+        (
+            "refund",
+            "money back",
+            "charged",
+            "charge",
+            "invoice",
+            "billed",
+            "overcharged",
+            "reimburse",
+        ),
     ),
     (
         "shipping_delivery",
-        ("delivery", "deliver", "shipping", "shipped", "parcel", "package", "tracking", "arrive", "courier"),
+        (
+            "delivery",
+            "deliver",
+            "shipping",
+            "shipped",
+            "parcel",
+            "package",
+            "tracking",
+            "arrive",
+            "courier",
+        ),
     ),
     (
         "subscription_change",
-        ("subscription", "downgrade", "upgrade", "cancel my plan", "cancel the plan", "seats", "seat count", "plan"),
+        (
+            "subscription",
+            "downgrade",
+            "upgrade",
+            "cancel my plan",
+            "cancel the plan",
+            "seats",
+            "seat count",
+            "plan",
+        ),
     ),
     (
         "technical_issue",
@@ -262,7 +306,7 @@ class FakeProvider:
                 continue
             raw = match.group("value").replace(",", ".")
             minor = int(round(float(raw) * 100)) if "." in raw else int(raw) * 100
-            return minor, code or _SYMBOL_TO_CODE.get(symbol or "", None)
+            return minor, code or _SYMBOL_TO_CODE.get(symbol or "")
         return None, None
 
     @staticmethod
@@ -293,15 +337,14 @@ class FakeProvider:
         ticket_words = [
             word
             for word in re.findall(r"[A-Za-z]{4,}", ticket)
-            if word.casefold() not in {"the", "that", "this", "have", "with", "your", "from", "been"}
+            if word.casefold()
+            not in {"the", "that", "this", "have", "with", "your", "from", "been"}
         ][:12]
         return " ".join(filter(None, [seeds, " ".join(ticket_words)])).strip()
 
     # -- step 2: tool planning --------------------------------------------
 
-    def _plan_tools(
-        self, ticket: str, results: list[tuple[str, str, str]]
-    ) -> dict[str, object]:
+    def _plan_tools(self, ticket: str, results: list[tuple[str, str, str]]) -> dict[str, object]:
         already_called = {tool for tool, _status, _body in results}
         order = _ORDER_ID.search(ticket)
         account = _ACCOUNT_ID.search(ticket)
@@ -401,22 +444,28 @@ class FakeProvider:
             "kind": "reply_only",
             "amount_minor": None,
             "target_id": None,
-            "justification": "The policy answers the customer's question; no other action is needed.",
+            "justification": (
+                "The policy answers the customer's question; no other action is needed."
+            ),
         }
         if category_is_money and eligibility is not None and eligibility["eligible"]:
             action = {
                 "kind": "issue_refund",
-                "amount_minor": int(eligibility["max_refundable_minor"]),
+                "amount_minor": int(str(eligibility["max_refundable_minor"])),
                 "target_id": str(eligibility["order_id"]),
                 "justification": str(eligibility["reason"]),
             }
 
-        risk = "high" if action["kind"] == "issue_refund" else ("medium" if category_is_money else "low")
+        risk = (
+            "high"
+            if action["kind"] == "issue_refund"
+            else ("medium" if category_is_money else "low")
+        )
         confidence = min(0.55 + 0.06 * overlap, 0.92)
 
         return {
             "answer_status": "answered",
-            "reply_draft": self._draft(best, quote, action),
+            "reply_draft": self._draft(quote, action),
             "citations": [{"chunk_id": best.chunk_id, "quote": quote}],
             "recommended_action": action,
             "confidence": round(confidence, 2),
@@ -451,7 +500,11 @@ class FakeProvider:
         is the whole point: a paraphrase here would fail the grounding check,
         which is precisely the behaviour that check is there to enforce.
         """
-        sentences = [s.strip() for s in _SENTENCE.findall(text) if len(s.strip()) > 25]
+        sentences: list[str] = [
+            str(sentence).strip()
+            for sentence in _SENTENCE.findall(text)
+            if len(str(sentence).strip()) > 25
+        ]
         if not sentences:
             return text.strip()
         return max(
@@ -479,7 +532,7 @@ class FakeProvider:
         return None
 
     @staticmethod
-    def _draft(excerpt: _Excerpt, quote: str, action: dict[str, object]) -> str:
+    def _draft(quote: str, action: dict[str, object]) -> str:
         opening = "Thanks for getting in touch."
         if action["kind"] == "issue_refund":
             closing = (

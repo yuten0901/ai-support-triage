@@ -83,8 +83,12 @@ class ExtractedEntities(StrictModel):
     exists. Nothing downstream trusts these values on their own.
     """
 
-    order_id: str | None = Field(default=None, description="Order reference mentioned by the customer.")
-    account_id: str | None = Field(default=None, description="Account reference mentioned by the customer.")
+    order_id: str | None = Field(
+        default=None, description="Order reference mentioned by the customer."
+    )
+    account_id: str | None = Field(
+        default=None, description="Account reference mentioned by the customer."
+    )
     amount_minor: int | None = Field(
         default=None,
         description="Any monetary amount the customer named, in minor units (cents).",
@@ -120,7 +124,9 @@ class ToolPlan(StrictModel):
     tool_name: str | None = Field(default=None)
     arguments_json: str | None = Field(
         default=None,
-        description="JSON object of arguments for tool_name. Validated against the tool's own schema.",
+        description=(
+            "JSON object of arguments for tool_name. Validated against the tool's own schema."
+        ),
     )
     reason: str = Field(description="Why this tool, or why none is needed.")
 
@@ -147,8 +153,12 @@ class RecommendedAction(StrictModel):
     """
 
     kind: ActionKind
-    amount_minor: int | None = Field(default=None, description="Required when kind is issue_refund.")
-    target_id: str | None = Field(default=None, description="Order id or ticket ref the action applies to.")
+    amount_minor: int | None = Field(
+        default=None, description="Required when kind is issue_refund."
+    )
+    target_id: str | None = Field(
+        default=None, description="Order id or ticket ref the action applies to."
+    )
     justification: str
 
 

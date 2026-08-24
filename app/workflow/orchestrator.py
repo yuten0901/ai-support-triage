@@ -59,14 +59,14 @@ from app.ai.client import (
     StructuredCaller,
 )
 from app.ai.prompts import templates
-from app.ai.provider import LLMProvider
-from app.ai.schemas import Classification, Resolution, ToolPlan
 from app.ai.prompts.render import (
     render_evidence,
     render_ticket,
     render_tool_catalogue,
     render_tool_results,
 )
+from app.ai.provider import LLMProvider
+from app.ai.schemas import Classification, Resolution, ToolPlan
 from app.domain.backoff import JitterSource, compute_delay
 from app.domain.clock import Clock
 from app.domain.evidence import EvidenceSet
@@ -437,9 +437,7 @@ class Orchestrator:
                 )
                 result.tool_outcomes.append(outcome)
                 result.tool_attempts.append((outcome, 1))
-                self._add_step(
-                    result, StepKind.EXECUTE_TOOL, StepStatus.FAILED, 0, outcome.error
-                )
+                self._add_step(result, StepKind.EXECUTE_TOOL, StepStatus.FAILED, 0, outcome.error)
                 continue
 
             started = self._clock.monotonic()
@@ -485,9 +483,7 @@ class Orchestrator:
                         )
                     )
             except ToolPermanentError as error:
-                raise StepFailure(
-                    ErrorKind.TOOL_INFRASTRUCTURE, f"tool {name}: {error}"
-                ) from error
+                raise StepFailure(ErrorKind.TOOL_INFRASTRUCTURE, f"tool {name}: {error}") from error
 
         raise StepFailure(
             ErrorKind.TOOL_INFRASTRUCTURE,
@@ -546,7 +542,9 @@ class Orchestrator:
                 executed = self._actions.issue_refund(
                     order_id=target,
                     amount_minor=action.amount_minor or 0,
-                    currency=(result.classification.entities.currency if result.classification else None)
+                    currency=(
+                        result.classification.entities.currency if result.classification else None
+                    )
                     or "USD",
                     key=key,
                 )

@@ -45,4 +45,4 @@ def compute_delay(
         return max(0.0, min(retry_after, max_seconds))
 
     uncapped = base_seconds * (2 ** (attempt - 1))
-    return min(uncapped, max_seconds) * jitter()
+    return float(min(uncapped, max_seconds) * jitter())

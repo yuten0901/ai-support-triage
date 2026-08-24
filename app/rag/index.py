@@ -44,7 +44,7 @@ _STOPWORDS = frozenset(
     a an the and or of to in for on at by is are was were be been being it its this that
     these those with as from we you i my your our their he she they them us if then than
     so but do does did have has had will would can could should may might must about into
-    """.split()
+    """.split()  # noqa: SIM905 - grouped text is substantially easier to review
 )
 
 

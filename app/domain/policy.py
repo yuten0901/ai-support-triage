@@ -101,13 +101,30 @@ def precheck(subject: str, body: str) -> PrecheckResult:
 #: will phrase it differently. What it buys is that the common, low-effort case
 #: is visible in the run trace and forces a human onto any write action.
 _INJECTION_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("override_instructions", re.compile(r"\bignore\s+(all\s+)?(previous|prior|above)\s+instructions?\b", re.I)),
-    ("override_instructions", re.compile(r"\bdisregard\s+(the\s+)?(above|previous|system|earlier)\b", re.I)),
+    (
+        "override_instructions",
+        re.compile(r"\bignore\s+(all\s+)?(previous|prior|above)\s+instructions?\b", re.I),
+    ),
+    (
+        "override_instructions",
+        re.compile(r"\bdisregard\s+(the\s+)?(above|previous|system|earlier)\b", re.I),
+    ),
     ("role_reassignment", re.compile(r"\byou\s+are\s+now\s+(a|an|the)\b", re.I)),
     ("system_prompt_probe", re.compile(r"\b(system|developer)\s+prompt\b", re.I)),
-    ("instruction_extraction", re.compile(r"\b(reveal|print|show|repeat)\s+(me\s+)?your\s+(instructions?|prompt|rules)\b", re.I)),
-    ("policy_override_claim", re.compile(r"\b(policy|rules?)\s+(does\s+not|do\s+not|doesn't|don't)\s+apply\b", re.I)),
-    ("forged_authority", re.compile(r"\b(as|this\s+is)\s+(the\s+)?(admin|administrator|ceo|支店長)\b", re.I)),
+    (
+        "instruction_extraction",
+        re.compile(
+            r"\b(reveal|print|show|repeat)\s+(me\s+)?your\s+(instructions?|prompt|rules)\b", re.I
+        ),
+    ),
+    (
+        "policy_override_claim",
+        re.compile(r"\b(policy|rules?)\s+(does\s+not|do\s+not|doesn't|don't)\s+apply\b", re.I),
+    ),
+    (
+        "forged_authority",
+        re.compile(r"\b(as|this\s+is)\s+(the\s+)?(admin|administrator|ceo|支店長)\b", re.I),
+    ),
     ("delimiter_injection", re.compile(r"</?(system|developer|instructions?)>", re.I)),
 )
 

@@ -69,12 +69,13 @@ def estimate_cost(model: str, usage: TokenUsage) -> float | None:
     if price is None or not usage.reported:
         return None
     return (
-        usage.input_tokens * price.input_per_mtok
-        + usage.output_tokens * price.output_per_mtok
+        usage.input_tokens * price.input_per_mtok + usage.output_tokens * price.output_per_mtok
     ) / 1_000_000
 
 
-def worst_case_cost(model: str, *, estimated_input_tokens: int, max_output_tokens: int) -> float | None:
+def worst_case_cost(
+    model: str, *, estimated_input_tokens: int, max_output_tokens: int
+) -> float | None:
     """Upper bound on what a call *about* to be made could cost.
 
     Used before dialling out, so a run can be stopped before it overspends
@@ -87,8 +88,7 @@ def worst_case_cost(model: str, *, estimated_input_tokens: int, max_output_token
     if price is None:
         return None
     return (
-        estimated_input_tokens * price.input_per_mtok
-        + max_output_tokens * price.output_per_mtok
+        estimated_input_tokens * price.input_per_mtok + max_output_tokens * price.output_per_mtok
     ) / 1_000_000
 
 
