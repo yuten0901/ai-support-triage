@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: triage
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+psycopg://postgres:postgres@localhost:5432/triage' || 'sqlite+pysqlite:///./ci.sqlite3' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e ".[dev,postgres]"
+      - run: ruff check .
+      - run: mypy app tests evals scripts
+      - run: pytest -q --cov=app --cov-report=term-missing
+      - run: python -m evals.runner
+      - run: python scripts/verify_mutations.py
