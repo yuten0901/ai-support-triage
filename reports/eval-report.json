@@ -1,0 +1,90 @@
+{
+  "summary": {
+    "cases": 8,
+    "passed": 8,
+    "failed": 0,
+    "pass_rate": 1.0
+  },
+  "results": [
+    {
+      "case_id": "refund-eligible",
+      "passed": true,
+      "status": "needs_human_review",
+      "category": "billing_refund",
+      "grounded": true,
+      "provider_calls": 5,
+      "cost_usd": 0.03447,
+      "failures": []
+    },
+    {
+      "case_id": "refund-expired",
+      "passed": true,
+      "status": "auto_resolved",
+      "category": "billing_refund",
+      "grounded": true,
+      "provider_calls": 5,
+      "cost_usd": 0.03327,
+      "failures": []
+    },
+    {
+      "case_id": "shipping-delay",
+      "passed": true,
+      "status": "auto_resolved",
+      "category": "shipping_delivery",
+      "grounded": true,
+      "provider_calls": 5,
+      "cost_usd": 0.03442,
+      "failures": []
+    },
+    {
+      "case_id": "account-lock",
+      "passed": true,
+      "status": "auto_resolved",
+      "category": "account_access",
+      "grounded": true,
+      "provider_calls": 4,
+      "cost_usd": 0.028055,
+      "failures": []
+    },
+    {
+      "case_id": "subscription",
+      "passed": true,
+      "status": "insufficient_evidence",
+      "category": "subscription_change",
+      "grounded": true,
+      "provider_calls": 3,
+      "cost_usd": 0.01914,
+      "failures": []
+    },
+    {
+      "case_id": "courtesy",
+      "passed": true,
+      "status": "no_action_required",
+      "category": null,
+      "grounded": true,
+      "provider_calls": 0,
+      "cost_usd": 0.0,
+      "failures": []
+    },
+    {
+      "case_id": "unknown",
+      "passed": true,
+      "status": "insufficient_evidence",
+      "category": "general_question",
+      "grounded": true,
+      "provider_calls": 3,
+      "cost_usd": 0.020695,
+      "failures": []
+    },
+    {
+      "case_id": "injection",
+      "passed": true,
+      "status": "needs_human_review",
+      "category": "billing_refund",
+      "grounded": true,
+      "provider_calls": 5,
+      "cost_usd": 0.03459,
+      "failures": []
+    }
+  ]
+}

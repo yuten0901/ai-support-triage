@@ -12,6 +12,7 @@ venv/
 .coverage
 coverage.xml
 htmlcov/
+dist/
 junit.xml
 junit-*.xml
 
