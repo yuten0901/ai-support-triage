@@ -1,5 +1,12 @@
 # AI Support Triage
 
+[![CI](https://github.com/yuten0901/ai-support-triage/actions/workflows/ci.yml/badge.svg)](https://github.com/yuten0901/ai-support-triage/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+**A support team stops answering the same policy question by hand — and every automated answer cites the exact policy section it came from, or refuses to answer.**
+
 An evidence-grounded customer-support triage API. It classifies a ticket, retrieves versioned
 policy sections, validates read-only tool calls, verifies citations, and applies deterministic
 approval rules before any write action. The default provider is deterministic and offline; the
