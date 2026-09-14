@@ -1,3 +1,12 @@
+---
+project: ai-support-triage
+type: portfolio
+status: prod
+gate: none
+updated: 2026-08-24
+next: STATUS.md 本文を参照
+---
+
 # Status
 
 - State: production-ready portfolio demonstration
