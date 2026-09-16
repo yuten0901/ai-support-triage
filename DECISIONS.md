@@ -30,3 +30,8 @@
 - Remove injection-shaped retrieved chunks before either tool planning or response generation,
   persist the blocked count in the trace, and retain the signal in the deterministic action gate.
   This reduces a known path; it is not described as complete prompt-injection prevention.
+- Keep BM25 as the default but expose an optional Ollama `all-minilm` hybrid mode. On the fixed
+  13-case set, semantic score 0.20 cleanly separated answerable from unsupported queries; using it
+  as an out-of-domain gate improved Recall@4 from 0.90 to 1.00, MRR from 0.85 to 0.95, and empty
+  accuracy from 0.6667 to 1.00, at roughly 62 ms p50 instead of sub-millisecond BM25. This small
+  dataset is regression evidence, not a production-quality estimate.

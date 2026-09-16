@@ -41,7 +41,7 @@ workflow.
 
 ## Measured evidence
 
-- **43 automated tests** currently pass across contracts, reliability boundaries, API behavior,
+- **45 automated tests** currently pass across contracts, reliability boundaries, API behavior,
   tenant isolation, indirect-injection filtering, and retrieval evaluation.
 - The deterministic end-to-end evaluation passes **8/8** checked-in scenarios.
 - Four deliberately seeded defects are detected: weakened structured validation, fabricated
@@ -53,6 +53,11 @@ The imperfect retrieval result is intentional evidence, not a marketing omission
 missed damaged-item paraphrase and a printer false positive. The optional hybrid path must improve
 those cases without reducing empty-result accuracy before it is selected.
 
+The measured local `all-minilm` semantic-gated hybrid does so on the same fixed set: Recall@4
+**1.00**, MRR **0.95**, and unsupported-query empty-result accuracy **1.00**. Its p50 latency is
+**61.871 ms**, so BM25 remains the no-service, sub-millisecond default and hybrid is an explicit
+quality/latency choice.
+
 ## What is implemented, and what is not claimed
 
 Implemented and locally verified: deterministic provider workflow, SQLite persistence, tenant
@@ -61,9 +66,9 @@ isolation, BM25 retrieval, citation/action gates, metrics, evaluation, and all t
 Implemented but not called against a paid service locally: the Anthropic provider adapter. The CI
 contract and local stand-in cover its typed boundary, not real-model answer quality.
 
-Implemented as an experiment but not yet benchmarked on this machine: local Ollama dense retrieval
-and hybrid rank fusion. PostgreSQL is exercised in CI; a durable pgvector index and production
-traffic are not claimed.
+Implemented and locally benchmarked as an optional experiment: local Ollama dense retrieval,
+semantic out-of-domain gating, and hybrid rank fusion. PostgreSQL is exercised in CI; a durable
+pgvector index and production traffic are not claimed.
 
 ## Why this matters to a client
 

@@ -57,6 +57,18 @@ def test_hybrid_does_not_force_below_threshold_semantic_candidate() -> None:
     assert not retriever.search("unanswerable", top_k=3, min_score=0.1)
 
 
+def test_optional_semantic_gate_rejects_lexical_false_positive() -> None:
+    retriever = HybridRetriever(
+        StubRetriever([(chunk("lexical-false-positive"), 0.9)]),
+        StubRetriever([(chunk("nearest-but-unsupported"), 0.1)]),
+        lexical_min_score=0.1,
+        semantic_min_score=0.2,
+        semantic_gate=True,
+    )
+
+    assert not retriever.search("out of domain", top_k=3, min_score=0.1)
+
+
 def test_hybrid_rejects_same_id_with_different_content() -> None:
     retriever = HybridRetriever(
         StubRetriever([(chunk("same", "first"), 1.0)]),

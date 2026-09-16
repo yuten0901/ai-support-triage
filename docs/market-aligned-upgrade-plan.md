@@ -1,6 +1,6 @@
 # Market-aligned upgrade plan
 
-**Status:** slices 1-2 implemented and verified; slices 3-5 pending  
+**Status:** slices 1-2 verified; slice 3 locally measured except pgvector; slices 4-5 in progress
 **Date:** 2026-09-16  
 **Reason:** recent Upwork fixed-price AI/RAG jobs repeatedly require tenant isolation, vector or
 hybrid retrieval, leakage testing, observability, Docker deployment, and client-readable evidence.
@@ -120,9 +120,9 @@ finding remains open.
   per-tenant knowledge/tool stores, cross-tenant `404` behavior, and negative isolation tests.
 - 2026-09-16 — Slice 2: typed `Retriever` protocol introduced without changing the measured BM25
   behavior or the existing `EvidenceSet`/citation contract.
-- 2026-09-16 — Slice 3 in progress: local Ollama embedding adapter, in-memory cosine index,
-  deterministic RRF, and a 13-case BM25 baseline implemented. Live hybrid and pgvector evidence are
-  still pending and must not be claimed.
+- 2026-09-16 — Slice 3: local Ollama `all-minilm`, in-memory cosine search, semantic gating, and
+  deterministic RRF measured on the same 13-case set. Hybrid improved all three quality metrics;
+  durable pgvector behavior is still pending and must not be claimed.
 - 2026-09-16 — Slice 4 in progress: indirect-injection-shaped knowledge is removed before prompt
   construction, and a tenant-scoped content-free metrics endpoint reports operational rates and
   stage latency. Broader failure demonstrations and seeded tenant defects remain pending.

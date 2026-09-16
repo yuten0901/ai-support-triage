@@ -55,6 +55,18 @@ Open `/docs` for the interactive contract. Useful endpoints are `GET /healthz`,
 `POST /v1/triage`, `GET /v1/runs/{id}`, `GET /v1/runs/{id}/trace`, `GET /v1/reviews`,
 `POST /v1/reviews/{id}`, `GET /v1/knowledge`, and `GET /v1/metrics`.
 
+Optional measured hybrid retrieval runs entirely on the local machine:
+
+```powershell
+ollama pull all-minilm
+$env:RETRIEVAL_MODE = "hybrid"
+$env:EMBEDDING_MODEL = "all-minilm"
+.\.venv\Scripts\uvicorn.exe app.api.main:app --port 8000
+```
+
+If Ollama is unavailable, leave `RETRIEVAL_MODE` unset and the service uses the verified BM25
+default without any embedding download or model process.
+
 ## Verification
 
 ```powershell
@@ -66,12 +78,15 @@ Open `/docs` for the interactive contract. Useful endpoints are `GET /healthz`,
 .\.venv\Scripts\python.exe scripts\verify_mutations.py
 ```
 
-The suite currently contains 43 passing tests, and the checked-in evaluation report records 8/8
+The suite currently contains 45 passing tests, and the checked-in evaluation report records 8/8
 passing cases. Mutation verification proves that
 tests detect seeded defects in strict output validation, citation grounding, tool argument
 validation, and the retry boundary. The separate retrieval baseline reports Recall@4 0.90,
 MRR 0.85, and unsupported-query empty-result accuracy 0.6667; these deliberately imperfect
 numbers define what the optional hybrid experiment must improve without hiding false positives.
+With local Ollama `all-minilm`, the gated hybrid mode measures Recall@4 **1.00**, MRR **0.95**, and
+empty-result accuracy **1.00** on the same cases (p50 **61.871 ms** versus sub-millisecond BM25).
+It is therefore available as an explicit quality/latency trade-off, not silently made the default.
 
 ## Real provider and deployment notes
 
@@ -84,9 +99,9 @@ service container. Never expose the development API key or commit `.env`.
 
 The ledger is an in-process stand-in for payment and ticketing APIs. It demonstrates policy
 gating and idempotency boundaries, not durable payment execution. The BM25 corpus is intentionally
-small and reviewable. An in-memory dense adapter, local Ollama embedding boundary, and deterministic
-RRF layer exist for comparative evaluation, but this project does not claim that vector search is
-needed for five policy files or that the hybrid mode wins before its live benchmark is recorded.
+small and reviewable. Set `RETRIEVAL_MODE=hybrid` with local Ollama and `all-minilm` to use the
+measured semantic-gated RRF path. BM25 remains the default because it is transparent, requires no
+model service, and is dramatically faster for five policy files.
 Injection-shaped text retrieved from a knowledge document is removed before prompt construction and
 recorded in the persisted retrieval step; this is a tested gate, not a claim that pattern matching
 detects every possible indirect injection.

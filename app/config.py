@@ -115,12 +115,17 @@ class Settings(BaseSettings):
 
     # --- Retrieval ---------------------------------------------------------
     knowledge_dir: str = Field(default="knowledge")
+    retrieval_mode: Literal["bm25", "hybrid"] = Field(default="bm25")
     retrieval_top_k: int = Field(default=4, ge=1)
     retrieval_min_score: float = Field(
         default=0.15,
         ge=0,
         description="Chunks below this normalised BM25 score are not shown to the model at all.",
     )
+    semantic_min_score: float = Field(default=0.20, ge=-1, le=1)
+    hybrid_semantic_gate: bool = Field(default=True)
+    ollama_base_url: str = Field(default="http://127.0.0.1:11434")
+    embedding_model: str = Field(default="all-minilm", min_length=1)
 
     # --- Escalation policy (business rules, not model behaviour) -----------
     auto_refund_cap_minor: int = Field(

@@ -37,7 +37,9 @@ lookups deliberately return `404` so they do not disclose that an identifier exi
 The workflow depends on a `Retriever` protocol rather than BM25 directly. An optional local Ollama
 embedding adapter, in-memory cosine index, and deterministic Reciprocal Rank Fusion layer allow a
 measured hybrid experiment. They are not enabled by default and are not presented as superior
-until the same labelled dataset proves it.
+until the same labelled dataset proves it. The optional measured configuration uses dense search as
+an out-of-domain gate before RRF, preventing a weak lexical overlap from forcing evidence for a
+query whose best semantic score is below the calibrated threshold.
 
 Retrieved policy text is still untrusted input. Chunks matching indirect-injection patterns are
 removed before prompt construction, recorded in the retrieval step, and retain an escalation

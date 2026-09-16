@@ -19,7 +19,9 @@ class Embedder(Protocol):
     @property
     def model_id(self) -> str: ...
 
-    def embed(self, texts: list[str]) -> list[list[float]]: ...
+    def embed_documents(self, texts: list[str]) -> list[list[float]]: ...
+
+    def embed_query(self, text: str) -> list[float]: ...
 
 
 class _EmbedResponse(BaseModel):
@@ -53,7 +55,16 @@ class OllamaEmbedder:
     def model_id(self) -> str:
         return f"ollama:{self._model}"
 
-    def embed(self, texts: list[str]) -> list[list[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return self._embed(texts)
+
+    def embed_query(self, text: str) -> list[float]:
+        vectors = self._embed([text])
+        if len(vectors) != 1:
+            raise EmbeddingError("query embedding response must contain exactly one vector")
+        return vectors[0]
+
+    def _embed(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
         try:

@@ -28,8 +28,12 @@ from app.db.models import (
 from app.domain.clock import SystemClock
 from app.domain.policy import OutcomePolicy
 from app.domain.states import TriageStatus
+from app.rag.dense import DenseIndex
+from app.rag.embedding import Embedder, OllamaEmbedder
+from app.rag.hybrid import HybridRetriever
 from app.rag.index import KnowledgeIndex
-from app.rag.loader import load_documents
+from app.rag.loader import Document, load_documents
+from app.rag.protocol import Retriever
 from app.tools.actions import LedgerExecutor
 from app.tools.builtin import RefundRules, build_registry
 from app.tools.store import JsonFileStore
@@ -42,12 +46,40 @@ class Services:
     sessions: sessionmaker[Session]
     orchestrators: dict[str, Orchestrator]
     indexes: dict[str, KnowledgeIndex]
+    retrievers: dict[str, Retriever]
 
     def orchestrator_for(self, tenant_id: str) -> Orchestrator:
         return self.orchestrators[tenant_id]
 
     def index_for(self, tenant_id: str) -> KnowledgeIndex:
         return self.indexes[tenant_id]
+
+    def retriever_for(self, tenant_id: str) -> Retriever:
+        return self.retrievers[tenant_id]
+
+
+def build_retriever(
+    settings: Settings,
+    documents: list[Document],
+    *,
+    embedder: Embedder | None = None,
+) -> tuple[KnowledgeIndex, Retriever]:
+    """Build the configured retrieval path while preserving BM25 as the default."""
+    lexical = KnowledgeIndex(documents)
+    if settings.retrieval_mode == "bm25":
+        return lexical, lexical
+    semantic_embedder = embedder or OllamaEmbedder(
+        model=settings.embedding_model,
+        base_url=settings.ollama_base_url,
+    )
+    semantic = DenseIndex(documents, semantic_embedder)
+    return lexical, HybridRetriever(
+        lexical,
+        semantic,
+        lexical_min_score=settings.retrieval_min_score,
+        semantic_min_score=settings.semantic_min_score,
+        semantic_gate=settings.hybrid_semantic_gate,
+    )
 
 
 def build_services(settings: Settings, sessions: sessionmaker[Session]) -> Services:
@@ -93,9 +125,20 @@ def build_services(settings: Settings, sessions: sessionmaker[Session]) -> Servi
         model=settings.llm_model,
     )
     indexes: dict[str, KnowledgeIndex] = {}
+    retrievers: dict[str, Retriever] = {}
     orchestrators: dict[str, Orchestrator] = {}
+    shared_embedder: Embedder | None = None
+    if settings.retrieval_mode == "hybrid":
+        shared_embedder = OllamaEmbedder(
+            model=settings.embedding_model,
+            base_url=settings.ollama_base_url,
+        )
     for tenant_id in settings.configured_tenant_api_keys:
-        index = KnowledgeIndex(load_documents(root / settings.knowledge_dir_for(tenant_id)))
+        index, retriever = build_retriever(
+            settings,
+            load_documents(root / settings.knowledge_dir_for(tenant_id)),
+            embedder=shared_embedder,
+        )
         store = JsonFileStore(root / settings.data_dir_for(tenant_id), clock)
         tools = build_registry(
             store,
@@ -106,9 +149,10 @@ def build_services(settings: Settings, sessions: sessionmaker[Session]) -> Servi
             ),
         )
         indexes[tenant_id] = index
+        retrievers[tenant_id] = retriever
         orchestrators[tenant_id] = Orchestrator(
             provider=provider,
-            index=index,
+            index=retriever,
             tools=tools,
             actions=LedgerExecutor(),
             clock=clock,
@@ -120,6 +164,7 @@ def build_services(settings: Settings, sessions: sessionmaker[Session]) -> Servi
         sessions=sessions,
         orchestrators=orchestrators,
         indexes=indexes,
+        retrievers=retrievers,
     )
 
 

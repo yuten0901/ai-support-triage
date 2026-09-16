@@ -23,6 +23,7 @@ class RetrievalCaseResult:
     case_id: str
     answerable: bool
     retrieved_chunk_ids: tuple[str, ...]
+    retrieved_scores: tuple[float, ...]
     recall_at_k: float | None
     reciprocal_rank: float | None
     empty_result_correct: bool | None
@@ -54,6 +55,7 @@ def run_retrieval_benchmark(
         evidence = retriever.search(case["query"], top_k=top_k, min_score=min_score)
         latency_ms = (time.perf_counter() - started) * 1000
         retrieved = tuple(item.chunk.chunk_id for item in evidence.items)
+        scores = tuple(item.score for item in evidence.items)
         relevant = set(case["relevant_chunk_ids"])
         if relevant:
             matches = relevant.intersection(retrieved)
@@ -73,6 +75,7 @@ def run_retrieval_benchmark(
                 case_id=case["id"],
                 answerable=bool(relevant),
                 retrieved_chunk_ids=retrieved,
+                retrieved_scores=scores,
                 recall_at_k=recall,
                 reciprocal_rank=reciprocal_rank,
                 empty_result_correct=empty_correct,
@@ -109,37 +112,46 @@ def run_retrieval_benchmark(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=("bm25", "hybrid"), default="bm25")
+    parser.add_argument("--mode", choices=("bm25", "dense", "hybrid"), default="bm25")
     parser.add_argument("--cases", type=Path, default=Path("evals/retrieval_cases.json"))
     parser.add_argument("--knowledge", type=Path, default=Path("knowledge"))
     parser.add_argument("--output", type=Path, default=Path("evals/reports/retrieval-latest.json"))
     parser.add_argument("--top-k", type=int, default=4)
     parser.add_argument("--min-score", type=float, default=0.15)
     parser.add_argument("--semantic-min-score", type=float, default=0.55)
+    parser.add_argument("--semantic-gate", action="store_true")
     parser.add_argument("--ollama-url", default="http://127.0.0.1:11434")
-    parser.add_argument("--embedding-model", default="embeddinggemma")
+    parser.add_argument("--embedding-model")
     args = parser.parse_args()
 
     documents = load_documents(args.knowledge)
     lexical = KnowledgeIndex(documents)
     retriever: Retriever = lexical
-    if args.mode == "hybrid":
-        dense = DenseIndex(
-            documents,
-            OllamaEmbedder(model=args.embedding_model, base_url=args.ollama_url),
+    if args.mode in {"dense", "hybrid"}:
+        embedder = OllamaEmbedder(
+            model=args.embedding_model or "embeddinggemma", base_url=args.ollama_url
         )
-        retriever = HybridRetriever(
-            lexical,
-            dense,
-            lexical_min_score=args.min_score,
-            semantic_min_score=args.semantic_min_score,
-        )
+        dense = DenseIndex(documents, embedder)
+        if args.mode == "dense":
+            retriever = dense
+        else:
+            retriever = HybridRetriever(
+                lexical,
+                dense,
+                lexical_min_score=args.min_score,
+                semantic_min_score=args.semantic_min_score,
+                semantic_gate=args.semantic_gate,
+            )
 
     report = run_retrieval_benchmark(
         retriever,
         args.cases,
         args.output,
-        mode=args.mode,
+        mode=(
+            f"{args.mode}:{embedder.model_id}:semantic-gate={args.semantic_gate}"
+            if args.mode in {"dense", "hybrid"}
+            else args.mode
+        ),
         top_k=args.top_k,
         min_score=args.min_score,
     )

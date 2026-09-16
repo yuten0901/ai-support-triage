@@ -22,9 +22,15 @@ for the optional hybrid path, rather than editing the dataset to make the baseli
 
 Run the baseline with `python -m evals.retrieval_runner`; its volatile latest report is written under
 the ignored `evals/reports/` directory so latency changes do not dirty the repository. A local
-Ollama instance with the requested embedding model enables `python -m evals.retrieval_runner
---mode hybrid --output evals/reports/retrieval-hybrid.json`. A hybrid result is not a release claim
-until it improves the target failure without reducing unsupported-query accuracy.
+Ollama with `all-minilm` enables `python -m evals.retrieval_runner --mode hybrid
+--embedding-model all-minilm --semantic-min-score 0.20 --semantic-gate`. A hybrid result is not a
+release claim until it improves the target failure without reducing unsupported-query accuracy.
+
+The measured `all-minilm` semantic-gated hybrid snapshot is checked in at
+`reports/retrieval-hybrid.json`. On the same 13 cases it records Recall@4 **1.00**, MRR **0.95**,
+and empty-result accuracy **1.00**, with p50 **61.871 ms** and p95 **84.097 ms** on the local Windows
+machine. The semantic threshold is 0.20: the lowest correct top score was 0.5231 and the highest
+unsupported top score was 0.1892. That separation must be revalidated when the corpus changes.
 
 `scripts/verify_mutations.py` copies the repository to a temporary directory, seeds four defects,
 and runs the relevant test for each. A successful mutation run means all four defects were caught:
@@ -32,5 +38,5 @@ strict schema disabled, unknown citation accepted, tool argument validation bypa
 extra transport retry permitted.
 
 Real Anthropic quality and latency were not measured because no API credential was available.
-Ollama hybrid quality has not yet been measured on this machine. PostgreSQL was not available
-locally; the workflow definition runs that backend in CI.
+PostgreSQL was not available locally; the workflow definition runs that backend in CI. The dense
+index is in memory; durable pgvector behavior is not claimed.

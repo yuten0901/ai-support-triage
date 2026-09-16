@@ -26,6 +26,7 @@ class HybridRetriever:
         *,
         lexical_min_score: float,
         semantic_min_score: float,
+        semantic_gate: bool = False,
         rank_constant: int = 60,
         candidate_multiplier: int = 4,
     ) -> None:
@@ -37,6 +38,7 @@ class HybridRetriever:
         self._semantic = semantic
         self._lexical_min_score = lexical_min_score
         self._semantic_min_score = semantic_min_score
+        self._semantic_gate = semantic_gate
         self._rank_constant = rank_constant
         self._candidate_multiplier = candidate_multiplier
 
@@ -44,10 +46,15 @@ class HybridRetriever:
         if top_k < 1:
             return EvidenceSet()
         candidate_count = top_k * self._candidate_multiplier
-        result_sets = (
-            self._lexical.search(query, top_k=candidate_count, min_score=self._lexical_min_score),
-            self._semantic.search(query, top_k=candidate_count, min_score=self._semantic_min_score),
+        lexical = self._lexical.search(
+            query, top_k=candidate_count, min_score=self._lexical_min_score
         )
+        semantic = self._semantic.search(
+            query, top_k=candidate_count, min_score=self._semantic_min_score
+        )
+        if self._semantic_gate and not semantic:
+            return EvidenceSet()
+        result_sets = (lexical, semantic)
 
         scores: defaultdict[str, float] = defaultdict(float)
         chunks: dict[str, Chunk] = {}

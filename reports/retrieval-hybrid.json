@@ -1,0 +1,245 @@
+{
+  "configuration": {
+    "mode": "hybrid:ollama:all-minilm:semantic-gate=True",
+    "top_k": 4,
+    "min_score": 0.15
+  },
+  "summary": {
+    "cases": 13,
+    "answerable_cases": 10,
+    "unsupported_cases": 3,
+    "recall_at_k": 1.0,
+    "mrr": 0.95,
+    "empty_result_accuracy": 1.0,
+    "latency_ms_p50": 61.871,
+    "latency_ms_p95": 84.097
+  },
+  "results": [
+    {
+      "case_id": "password-reset",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "account-access@2026-03-10#password-reset",
+        "escalation-rules@2026-03-01#requests-involving-account-security",
+        "account-access@2026-03-10#multi-factor-authentication-recovery",
+        "account-access@2026-03-10#locked-accounts"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.4919,
+        0.4841,
+        0.4766
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 61.871
+    },
+    {
+      "case_id": "locked-account",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "account-access@2026-03-10#locked-accounts",
+        "escalation-rules@2026-03-01#requests-involving-account-security",
+        "account-access@2026-03-10#password-reset",
+        "account-access@2026-03-10#multi-factor-authentication-recovery"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.9839,
+        0.4841,
+        0.4766
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 61.288
+    },
+    {
+      "case_id": "mfa-device-lost",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "account-access@2026-03-10#multi-factor-authentication-recovery",
+        "escalation-rules@2026-03-01#requests-involving-account-security",
+        "account-access@2026-03-10#email-address-changes",
+        "account-access@2026-03-10#password-reset"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.9683,
+        0.4919,
+        0.4919
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 51.074
+    },
+    {
+      "case_id": "damaged-goods",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "shipping-policy@2026-01-15#late-deliveries",
+        "refund-policy@2026-02-01#refunds-for-damaged-or-defective-goods",
+        "refund-policy@2026-02-01#non-refundable-items",
+        "shipping-policy@2026-01-15#lost-parcels"
+      ],
+      "retrieved_scores": [
+        0.9357,
+        0.5,
+        0.4919,
+        0.4841
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 0.5,
+      "empty_result_correct": null,
+      "latency_ms": 54.744
+    },
+    {
+      "case_id": "standard-refund",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "refund-policy@2026-02-01#standard-refund-window",
+        "refund-policy@2026-02-01#enterprise-refund-window",
+        "refund-policy@2026-02-01#refunds-for-damaged-or-defective-goods",
+        "shipping-policy@2026-01-15#delivery-estimates"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.9839,
+        0.4841,
+        0.4841
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 64.964
+    },
+    {
+      "case_id": "late-delivery",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "shipping-policy@2026-01-15#late-deliveries",
+        "shipping-policy@2026-01-15#delivery-estimates",
+        "shipping-policy@2026-01-15#lost-parcels",
+        "shipping-policy@2026-01-15#address-changes"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.9761,
+        0.9761,
+        0.4766
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 50.331
+    },
+    {
+      "case_id": "lost-parcel",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "shipping-policy@2026-01-15#lost-parcels",
+        "shipping-policy@2026-01-15#international-shipping-and-customs",
+        "shipping-policy@2026-01-15#address-changes",
+        "account-access@2026-03-10#password-reset"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.9761,
+        0.9385,
+        0.4919
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 39.598
+    },
+    {
+      "case_id": "customs",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "shipping-policy@2026-01-15#international-shipping-and-customs",
+        "shipping-policy@2026-01-15#late-deliveries",
+        "shipping-policy@2026-01-15#delivery-estimates",
+        "shipping-policy@2026-01-15#lost-parcels"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.4919,
+        0.4841,
+        0.4766
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 124.99
+    },
+    {
+      "case_id": "cancel-subscription",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "subscription-policy@2026-02-20#cancellation",
+        "subscription-policy@2026-02-20#failed-payments",
+        "account-access@2026-03-10#password-reset",
+        "refund-policy@2026-02-01#enterprise-refund-window"
+      ],
+      "retrieved_scores": [
+        0.9919,
+        0.9919,
+        0.4841,
+        0.4841
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 52.108
+    },
+    {
+      "case_id": "enterprise-seats",
+      "answerable": true,
+      "retrieved_chunk_ids": [
+        "subscription-policy@2026-02-20#seat-changes-on-enterprise-agreements",
+        "refund-policy@2026-02-01#enterprise-refund-window"
+      ],
+      "retrieved_scores": [
+        1.0,
+        0.9839
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "empty_result_correct": null,
+      "latency_ms": 76.834
+    },
+    {
+      "case_id": "unsupported-printer",
+      "answerable": false,
+      "retrieved_chunk_ids": [],
+      "retrieved_scores": [],
+      "recall_at_k": null,
+      "reciprocal_rank": null,
+      "empty_result_correct": true,
+      "latency_ms": 81.771
+    },
+    {
+      "case_id": "unsupported-weather",
+      "answerable": false,
+      "retrieved_chunk_ids": [],
+      "retrieved_scores": [],
+      "recall_at_k": null,
+      "reciprocal_rank": null,
+      "empty_result_correct": true,
+      "latency_ms": 84.097
+    },
+    {
+      "case_id": "unsupported-tax",
+      "answerable": false,
+      "retrieved_chunk_ids": [],
+      "retrieved_scores": [],
+      "recall_at_k": null,
+      "reciprocal_rank": null,
+      "empty_result_correct": true,
+      "latency_ms": 82.13
+    }
+  ]
+}

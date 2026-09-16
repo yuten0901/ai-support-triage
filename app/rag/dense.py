@@ -28,7 +28,7 @@ class DenseIndex:
         self._by_id = {chunk.chunk_id: chunk for chunk in self._chunks}
         self._embedder = embedder
         inputs = [f"{chunk.heading}\n{chunk.text}" for chunk in self._chunks]
-        vectors = embedder.embed(inputs)
+        vectors = embedder.embed_documents(inputs)
         if len(vectors) != len(self._chunks):
             raise EmbeddingError(
                 f"embedding count mismatch: expected {len(self._chunks)}, got {len(vectors)}"
@@ -42,10 +42,7 @@ class DenseIndex:
     def search(self, query: str, *, top_k: int, min_score: float) -> EvidenceSet:
         if not query.strip() or top_k < 1 or not self._chunks:
             return EvidenceSet()
-        query_vectors = self._embedder.embed([query])
-        if len(query_vectors) != 1:
-            raise EmbeddingError("query embedding response must contain exactly one vector")
-        query_vector = _normalise(query_vectors[0])
+        query_vector = _normalise(self._embedder.embed_query(query))
         if len(query_vector) != self._dimensions:
             raise EmbeddingError(
                 f"query embedding dimension {len(query_vector)} does not match index "
