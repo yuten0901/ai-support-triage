@@ -35,3 +35,7 @@
   as an out-of-domain gate improved Recall@4 from 0.90 to 1.00, MRR from 0.85 to 0.95, and empty
   accuracy from 0.6667 to 1.00, at roughly 62 ms p50 instead of sub-millisecond BM25. This small
   dataset is regression evidence, not a production-quality estimate.
+- Make operational claims reproducible through an API-level script rather than screenshots alone.
+  The script uses an isolated temporary database, injects deterministic provider failures, and
+  writes a checked-in 5/5 report covering unsupported, duplicate, cross-tenant, outage, and invalid
+  model-output behavior. This report will also be the source for the captioned walkthrough.

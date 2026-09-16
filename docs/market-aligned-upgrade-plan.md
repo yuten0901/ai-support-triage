@@ -1,6 +1,6 @@
 # Market-aligned upgrade plan
 
-**Status:** slices 1-2 verified; slice 3 locally measured except pgvector; slices 4-5 in progress
+**Status:** slices 1-4 verified; slice 3 excludes pgvector; slice 5 lacks only the walkthrough
 **Date:** 2026-09-16  
 **Reason:** recent Upwork fixed-price AI/RAG jobs repeatedly require tenant isolation, vector or
 hybrid retrieval, leakage testing, observability, Docker deployment, and client-readable evidence.
@@ -123,6 +123,10 @@ finding remains open.
 - 2026-09-16 — Slice 3: local Ollama `all-minilm`, in-memory cosine search, semantic gating, and
   deterministic RRF measured on the same 13-case set. Hybrid improved all three quality metrics;
   durable pgvector behavior is still pending and must not be claimed.
-- 2026-09-16 — Slice 4 in progress: indirect-injection-shaped knowledge is removed before prompt
-  construction, and a tenant-scoped content-free metrics endpoint reports operational rates and
-  stage latency. Broader failure demonstrations and seeded tenant defects remain pending.
+- 2026-09-16 — Slice 4: indirect-injection-shaped knowledge is removed before prompt construction;
+  a tenant-scoped content-free metrics endpoint reports operational rates and stage latency; and a
+  5/5 API-level failure demo proves unsupported, duplicate, cross-tenant, provider-outage, and
+  malformed-output behavior. Tenant isolation tests fail if tenant predicates or retrieval
+  partitioning are removed. A separate mutation runner still covers four foundational defects.
+- 2026-09-16 — Slice 5 in progress: the case study, architecture diagram, and machine-readable
+  reports are linked from the README. The captioned walkthrough remains pending.

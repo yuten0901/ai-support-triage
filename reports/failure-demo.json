@@ -1,0 +1,49 @@
+{
+  "summary": {
+    "passed": 5,
+    "total": 5
+  },
+  "scenarios": [
+    {
+      "name": "unsupported query refuses to invent evidence",
+      "passed": true,
+      "observed": {
+        "status": "insufficient_evidence",
+        "provider_calls": 3
+      }
+    },
+    {
+      "name": "duplicate delivery reuses the original run",
+      "passed": true,
+      "observed": {
+        "same_run_id": true,
+        "status": "insufficient_evidence"
+      }
+    },
+    {
+      "name": "cross-tenant run access is indistinguishable from missing",
+      "passed": true,
+      "observed": {
+        "http_status": 404
+      }
+    },
+    {
+      "name": "provider outage stops after the retry budget",
+      "passed": true,
+      "observed": {
+        "status": "failed",
+        "error_kind": "provider_unavailable",
+        "provider_calls": 2
+      }
+    },
+    {
+      "name": "malformed model output stops after the repair budget",
+      "passed": true,
+      "observed": {
+        "status": "failed",
+        "error_kind": "invalid_model_output",
+        "provider_calls": 2
+      }
+    }
+  ]
+}

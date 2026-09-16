@@ -41,8 +41,10 @@ workflow.
 
 ## Measured evidence
 
-- **45 automated tests** currently pass across contracts, reliability boundaries, API behavior,
+- **46 automated tests** currently pass across contracts, reliability boundaries, API behavior,
   tenant isolation, indirect-injection filtering, and retrieval evaluation.
+- A scripted API-level failure demonstration passes **5/5** scenarios covering unsupported
+  questions, idempotent duplicates, cross-tenant access, provider outage, and malformed output.
 - The deterministic end-to-end evaluation passes **8/8** checked-in scenarios.
 - Four deliberately seeded defects are detected: weakened structured validation, fabricated
   citations, bypassed tool argument validation, and an extra retry beyond the budget.
@@ -61,7 +63,8 @@ quality/latency choice.
 ## What is implemented, and what is not claimed
 
 Implemented and locally verified: deterministic provider workflow, SQLite persistence, tenant
-isolation, BM25 retrieval, citation/action gates, metrics, evaluation, and all tests above.
+isolation, BM25 retrieval, citation/action gates, metrics, evaluation, the failure demonstration,
+and all tests above.
 
 Implemented but not called against a paid service locally: the Anthropic provider adapter. The CI
 contract and local stand-in cover its typed boundary, not real-model answer quality.

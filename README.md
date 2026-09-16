@@ -14,7 +14,8 @@ same boundary supports Anthropic when credentials are supplied.
 
 **Evidence:** [client-facing case study](docs/case-study.md) ·
 [architecture and trust boundaries](docs/architecture.md) ·
-[evaluation method and measured limits](docs/evaluation.md)
+[evaluation method and measured limits](docs/evaluation.md) ·
+[five-scenario failure proof](reports/failure-demo.json)
 
 ## What this demonstrates
 
@@ -76,9 +77,10 @@ default without any embedding download or model process.
 .\.venv\Scripts\python.exe -m evals.runner
 .\.venv\Scripts\python.exe -m evals.retrieval_runner
 .\.venv\Scripts\python.exe scripts\verify_mutations.py
+.\.venv\Scripts\python.exe scripts\run_failure_demo.py
 ```
 
-The suite currently contains 45 passing tests, and the checked-in evaluation report records 8/8
+The suite currently contains 46 passing tests, and the checked-in evaluation report records 8/8
 passing cases. Mutation verification proves that
 tests detect seeded defects in strict output validation, citation grounding, tool argument
 validation, and the retry boundary. The separate retrieval baseline reports Recall@4 0.90,
@@ -87,6 +89,10 @@ numbers define what the optional hybrid experiment must improve without hiding f
 With local Ollama `all-minilm`, the gated hybrid mode measures Recall@4 **1.00**, MRR **0.95**, and
 empty-result accuracy **1.00** on the same cases (p50 **61.871 ms** versus sub-millisecond BM25).
 It is therefore available as an explicit quality/latency trade-off, not silently made the default.
+
+The checked-in failure demonstration passes **5/5** scenarios through the real API workflow:
+unsupported queries, duplicate delivery, cross-tenant access, exhausted provider retries, and
+exhausted malformed-output repairs. It runs with a temporary database and does not need a paid key.
 
 ## Real provider and deployment notes
 
