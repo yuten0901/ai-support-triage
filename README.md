@@ -16,7 +16,8 @@ same boundary supports Anthropic when credentials are supplied.
 [two-minute captioned walkthrough](docs/video/ai-support-triage-walkthrough.mp4) ·
 [architecture and trust boundaries](docs/architecture.md) ·
 [evaluation method and measured limits](docs/evaluation.md) ·
-[five-scenario failure proof](reports/failure-demo.json)
+[five-scenario failure proof](reports/failure-demo.json) ·
+[clean Compose proof](reports/compose-smoke.json)
 
 ## What this demonstrates
 
@@ -69,6 +70,20 @@ $env:EMBEDDING_MODEL = "all-minilm"
 If Ollama is unavailable, leave `RETRIEVAL_MODE` unset and the service uses the verified BM25
 default without any embedding download or model process.
 
+### Clean Docker Compose run
+
+The following builds the API as a non-root, read-only container and starts it with an ephemeral
+PostgreSQL 16 database. Only loopback port `18080` is published:
+
+```powershell
+docker compose up --build --detach --wait
+.\.venv\Scripts\python.exe scripts\verify_compose.py
+docker compose down --volumes --remove-orphans
+```
+
+The same sequence runs in public CI. It does not require a paid model key and does not preserve the
+local demo password or database after shutdown.
+
 ## Verification
 
 ```powershell
@@ -95,13 +110,15 @@ It is therefore available as an explicit quality/latency trade-off, not silently
 The checked-in failure demonstration passes **5/5** scenarios through the real API workflow:
 unsupported queries, duplicate delivery, cross-tenant access, exhausted provider retries, and
 exhausted malformed-output repairs. It runs with a temporary database and does not need a paid key.
+The clean-container smoke test separately passes **3/3** checks against the Compose API and
+PostgreSQL services: health, triage, and persisted trace retrieval.
 
 ## Real provider and deployment notes
 
 Set `LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, and a supported `LLM_MODEL` to use Anthropic.
 This path is implemented and type-checked but was not called locally because no paid credential
-was available. Set `DATABASE_URL=postgresql+psycopg://...` for PostgreSQL; CI exercises it with a
-service container. Never expose the development API key or commit `.env`.
+was available. Set `DATABASE_URL=postgresql+psycopg://...` for PostgreSQL; both the test matrix and
+the clean Compose smoke test exercise it. Never expose the development API key or commit `.env`.
 
 ## Scope
 

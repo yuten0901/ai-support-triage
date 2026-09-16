@@ -45,6 +45,8 @@ workflow.
   tenant isolation, indirect-injection filtering, and retrieval evaluation.
 - A scripted API-level failure demonstration passes **5/5** scenarios covering unsupported
   questions, idempotent duplicates, cross-tenant access, provider outage, and malformed output.
+- A clean Docker Compose build passes **3/3** public API checks with a non-root, read-only API
+  container and ephemeral PostgreSQL 16: health, triage, and persisted trace retrieval.
 - The deterministic end-to-end evaluation passes **8/8** checked-in scenarios.
 - Four deliberately seeded defects are detected: weakened structured validation, fabricated
   citations, bypassed tool argument validation, and an extra retry beyond the budget.
@@ -62,16 +64,16 @@ quality/latency choice.
 
 ## What is implemented, and what is not claimed
 
-Implemented and locally verified: deterministic provider workflow, SQLite persistence, tenant
-isolation, BM25 retrieval, citation/action gates, metrics, evaluation, the failure demonstration,
-and all tests above.
+Implemented and locally verified: deterministic provider workflow, SQLite and PostgreSQL
+persistence, tenant isolation, BM25 retrieval, citation/action gates, metrics, evaluation, the
+failure demonstration, the clean Compose build, and all tests above.
 
 Implemented but not called against a paid service locally: the Anthropic provider adapter. The CI
 contract and local stand-in cover its typed boundary, not real-model answer quality.
 
 Implemented and locally benchmarked as an optional experiment: local Ollama dense retrieval,
-semantic out-of-domain gating, and hybrid rank fusion. PostgreSQL is exercised in CI; a durable
-pgvector index and production traffic are not claimed.
+semantic out-of-domain gating, and hybrid rank fusion. PostgreSQL is exercised both locally through
+Compose and in CI; a durable pgvector index and production traffic are not claimed.
 
 ## Why this matters to a client
 

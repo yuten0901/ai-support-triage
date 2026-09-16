@@ -13,14 +13,16 @@ next: STATUS.md 本文を参照
 - Conclusion date: 2026-09-16
 - Result: tenant data/retrieval boundaries, a replaceable retrieval contract, dense/RRF experiment
   path, measured BM25/hybrid retrieval, content-free tenant metrics, and a 5/5 API-level failure
-  demonstration are implemented; 46 tests pass; offline evaluation 8/8; seeded defects detected 4/4.
+  demonstration are implemented; a clean API + PostgreSQL Compose run passes 3/3; 46 tests pass;
+  offline evaluation 8/8; seeded defects detected 4/4.
 - Reusable assets: bounded structured-calling client, grounded citation validator, typed tool
   registry, deterministic policy gate, trace persistence, and offline evaluation runner.
 - Lesson: outcome taxonomy and validation boundaries must be explicit before adding an LLM; a
   fake provider is useful only when it exercises the same contracts and workflow as production.
-- Honest gaps: real Anthropic calls and local PostgreSQL were unavailable; Anthropic is implemented
-  and type-checked, while PostgreSQL is assigned to CI.
+- Honest gaps: real Anthropic calls were unavailable; the adapter is implemented and type-checked.
+  PostgreSQL now runs both locally through Compose and in the public CI matrix. Durable pgvector
+  indexing and production traffic are not claimed.
 - Next: stop expanding this repository unless a target engagement requires durable pgvector
-  indexing or clean-container proof at larger corpus scale. The buyer-facing walkthrough is now
+  indexing or larger-corpus proof. Clean-container delivery is now verified. The walkthrough is
   generated from checked-in measured reports; BM25 remains the small-corpus default because of its
   latency and simplicity.

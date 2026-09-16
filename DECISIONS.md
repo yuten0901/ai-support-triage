@@ -43,3 +43,7 @@
   failure demo or 8/8 end-to-end gate regresses. Keep spoken English optional: the MP4 has burned-in
   concise captions and a separate SRT file. This repository is now complete for its intended
   in-memory portfolio scope; pgvector is demand-driven rather than a keyword-driven addition.
+- Containerize only the behavior that is implemented: the API runs as a non-root user on a
+  read-only filesystem, with PostgreSQL 16 on an ephemeral tmpfs and a loopback-only host port.
+  Verify health, triage, and persisted trace retrieval locally and in public CI. Do not substitute a
+  pgvector image for a durable vector implementation merely to add the keyword.

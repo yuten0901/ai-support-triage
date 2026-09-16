@@ -1,0 +1,38 @@
+{
+  "summary": {
+    "passed": 3,
+    "total": 3
+  },
+  "checks": {
+    "health": {
+      "http_status": 200,
+      "status": "ok",
+      "provider": "fake"
+    },
+    "triage": {
+      "http_status": 200,
+      "status": "needs_human_review",
+      "category": "billing_refund",
+      "provider_calls": 5
+    },
+    "trace": {
+      "http_status": 200,
+      "step_kinds": [
+        "precheck",
+        "classify",
+        "retrieve",
+        "plan_tools",
+        "execute_tool",
+        "plan_tools",
+        "execute_tool",
+        "plan_tools",
+        "execute_tool",
+        "resolve",
+        "decide",
+        "execute_action"
+      ],
+      "evidence_count": 2,
+      "tool_count": 3
+    }
+  }
+}

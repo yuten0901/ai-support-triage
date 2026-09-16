@@ -34,3 +34,18 @@ jobs:
       - run: pytest -q --cov=app --cov-report=term-missing
       - run: python -m evals.runner
       - run: python scripts/verify_mutations.py
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: docker compose up --build --detach --wait
+      - run: python scripts/verify_compose.py
+      - run: git diff --exit-code reports/compose-smoke.json
+      - if: always()
+        run: docker compose logs --no-color
+      - if: always()
+        run: docker compose down --volumes --remove-orphans

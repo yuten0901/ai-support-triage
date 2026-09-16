@@ -1,6 +1,6 @@
 # Market-aligned upgrade plan
 
-**Status:** slices 1-5 verified within the stated in-memory scope; pgvector remains conditional
+**Status:** slices 1-5 verified; clean PostgreSQL Compose proven; pgvector remains conditional
 **Date:** 2026-09-16  
 **Reason:** recent Upwork fixed-price AI/RAG jobs repeatedly require tenant isolation, vector or
 hybrid retrieval, leakage testing, observability, Docker deployment, and client-readable evidence.
@@ -131,3 +131,6 @@ finding remains open.
 - 2026-09-16 — Slice 5: the case study, architecture diagram, machine-readable reports, and a
   reproducible two-minute captioned walkthrough are linked from the README. The walkthrough is
   generated from checked-in reports and refuses to build when the key evaluation gates fail.
+- 2026-09-16 — Operability follow-up: Docker Desktop was repaired without resetting persistent
+  Docker data. A non-root, read-only API image and ephemeral PostgreSQL 16 service now pass a 3/3
+  API smoke test locally and in public CI. This proves container delivery, not pgvector indexing.
