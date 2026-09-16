@@ -12,6 +12,10 @@ policy sections, validates read-only tool calls, verifies citations, and applies
 approval rules before any write action. The default provider is deterministic and offline; the
 same boundary supports Anthropic when credentials are supplied.
 
+**Evidence:** [client-facing case study](docs/case-study.md) ·
+[architecture and trust boundaries](docs/architecture.md) ·
+[evaluation method and measured limits](docs/evaluation.md)
+
 ## What this demonstrates
 
 - Six explicit outcomes, including separate system failure, model rejection, insufficient
@@ -23,6 +27,8 @@ same boundary supports Anthropic when credentials are supplied.
 - SQLite for a zero-service local demo and PostgreSQL in CI.
 - Persisted steps, provider calls, evidence usage, tool results, token usage, cost, and review state.
 - A deterministic evaluation set and four seeded-defect checks.
+- Optional credential-derived tenant isolation: separate knowledge/tool stores, tenant-scoped
+  idempotency, runs, traces and review queues, with cross-tenant negative API tests.
 
 ## Quick start
 
@@ -47,7 +53,7 @@ Invoke-RestMethod http://127.0.0.1:8000/v1/triage -Method Post -Headers $headers
 
 Open `/docs` for the interactive contract. Useful endpoints are `GET /healthz`,
 `POST /v1/triage`, `GET /v1/runs/{id}`, `GET /v1/runs/{id}/trace`, `GET /v1/reviews`,
-`POST /v1/reviews/{id}`, and `GET /v1/knowledge`.
+`POST /v1/reviews/{id}`, `GET /v1/knowledge`, and `GET /v1/metrics`.
 
 ## Verification
 
@@ -56,13 +62,16 @@ Open `/docs` for the interactive contract. Useful endpoints are `GET /healthz`,
 .\.venv\Scripts\python.exe -m mypy app tests evals scripts
 .\.venv\Scripts\python.exe -m pytest -q --cov=app
 .\.venv\Scripts\python.exe -m evals.runner
+.\.venv\Scripts\python.exe -m evals.retrieval_runner
 .\.venv\Scripts\python.exe scripts\verify_mutations.py
 ```
 
-The suite currently contains 27 passing tests, and the checked-in evaluation report records 8/8
+The suite currently contains 43 passing tests, and the checked-in evaluation report records 8/8
 passing cases. Mutation verification proves that
 tests detect seeded defects in strict output validation, citation grounding, tool argument
-validation, and the retry boundary.
+validation, and the retry boundary. The separate retrieval baseline reports Recall@4 0.90,
+MRR 0.85, and unsupported-query empty-result accuracy 0.6667; these deliberately imperfect
+numbers define what the optional hybrid experiment must improve without hiding false positives.
 
 ## Real provider and deployment notes
 
@@ -75,7 +84,16 @@ service container. Never expose the development API key or commit `.env`.
 
 The ledger is an in-process stand-in for payment and ticketing APIs. It demonstrates policy
 gating and idempotency boundaries, not durable payment execution. The BM25 corpus is intentionally
-small and reviewable; this project does not claim a vector store is needed for five policy files.
+small and reviewable. An in-memory dense adapter, local Ollama embedding boundary, and deterministic
+RRF layer exist for comparative evaluation, but this project does not claim that vector search is
+needed for five policy files or that the hybrid mode wins before its live benchmark is recorded.
+Injection-shaped text retrieved from a knowledge document is removed before prompt construction and
+recorded in the persisted retrieval step; this is a tested gate, not a claim that pattern matching
+detects every possible indirect injection.
+
+The authenticated metrics endpoint reports per-tenant empty-retrieval, human-review, provider and
+citation-failure rates plus run/stage latency percentiles. It deliberately never loads ticket text,
+prompt bodies, provider payloads, or reusable tenant identifiers into its response.
 
 See [architecture](docs/architecture.md) and [evaluation](docs/evaluation.md).
 

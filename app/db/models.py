@@ -54,22 +54,27 @@ def _utcnow_column() -> Mapped[datetime]:
 class Ticket(Base):
     """The inbound request, stored once.
 
-    ``external_id`` is the caller's own reference and is unique: re-submitting
-    the same ticket returns the existing run rather than paying for a second
-    one. That is cost control, not just tidiness -- a retrying client should not
-    be able to multiply the model bill.
+    ``external_id`` is the caller's own reference and is unique within one
+    tenant: re-submitting the same ticket returns the existing run rather than
+    paying for a second one. A different tenant may legitimately use the same
+    external identifier.
     """
 
     __tablename__ = "tickets"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    external_id: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    external_id: Mapped[str] = mapped_column(String(128), nullable=False)
     subject: Mapped[str] = mapped_column(String(500), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     customer_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     received_at: Mapped[datetime] = _utcnow_column()
 
     runs: Mapped[list[TriageRun]] = relationship(back_populates="ticket")
+
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "external_id", name="uq_ticket_tenant_external"),
+    )
 
 
 class TriageRun(Base):
@@ -78,6 +83,7 @@ class TriageRun(Base):
     __tablename__ = "triage_runs"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), nullable=False)
     ticket_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False
     )
@@ -141,6 +147,7 @@ class TriageRun(Base):
 
 Index("ix_triage_runs_ticket", TriageRun.ticket_id)
 Index("ix_triage_runs_status", TriageRun.status)
+Index("ix_triage_runs_tenant", TriageRun.tenant_id)
 
 
 class RunStep(Base):
@@ -215,6 +222,7 @@ class EvidenceRecord(Base):
     __tablename__ = "evidence_items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), nullable=False)
     run_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("triage_runs.id", ondelete="CASCADE"), nullable=False
     )
@@ -278,6 +286,7 @@ class Review(Base):
     __tablename__ = "reviews"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), nullable=False)
     run_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("triage_runs.id", ondelete="CASCADE"), nullable=False, unique=True
     )
@@ -296,3 +305,4 @@ class Review(Base):
 
 
 Index("ix_reviews_state", Review.state)
+Index("ix_reviews_tenant_state", Review.tenant_id, Review.state)

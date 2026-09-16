@@ -40,24 +40,20 @@ from app.workflow.orchestrator import Orchestrator, OrchestratorConfig, RunResul
 class Services:
     settings: Settings
     sessions: sessionmaker[Session]
-    orchestrator: Orchestrator
-    index: KnowledgeIndex
+    orchestrators: dict[str, Orchestrator]
+    indexes: dict[str, KnowledgeIndex]
+
+    def orchestrator_for(self, tenant_id: str) -> Orchestrator:
+        return self.orchestrators[tenant_id]
+
+    def index_for(self, tenant_id: str) -> KnowledgeIndex:
+        return self.indexes[tenant_id]
 
 
 def build_services(settings: Settings, sessions: sessionmaker[Session]) -> Services:
     """Construct the deterministic default service graph."""
     root = Path.cwd()
     clock = SystemClock()
-    index = KnowledgeIndex(load_documents(root / settings.knowledge_dir))
-    store = JsonFileStore(root / "data", clock)
-    tools = build_registry(
-        store,
-        clock,
-        RefundRules(
-            standard_window_days=settings.refund_window_days,
-            enterprise_window_days=max(settings.refund_window_days, 60),
-        ),
-    )
     provider: LLMProvider
     if settings.llm_provider == "anthropic":
         if settings.anthropic_api_key is None:
@@ -96,29 +92,54 @@ def build_services(settings: Settings, sessions: sessionmaker[Session]) -> Servi
         max_ticket_body_chars=settings.max_ticket_body_chars,
         model=settings.llm_model,
     )
-    orchestrator = Orchestrator(
-        provider=provider,
-        index=index,
-        tools=tools,
-        actions=LedgerExecutor(),
-        clock=clock,
-        jitter=random.random,
-        config=config,
+    indexes: dict[str, KnowledgeIndex] = {}
+    orchestrators: dict[str, Orchestrator] = {}
+    for tenant_id in settings.configured_tenant_api_keys:
+        index = KnowledgeIndex(load_documents(root / settings.knowledge_dir_for(tenant_id)))
+        store = JsonFileStore(root / settings.data_dir_for(tenant_id), clock)
+        tools = build_registry(
+            store,
+            clock,
+            RefundRules(
+                standard_window_days=settings.refund_window_days,
+                enterprise_window_days=max(settings.refund_window_days, 60),
+            ),
+        )
+        indexes[tenant_id] = index
+        orchestrators[tenant_id] = Orchestrator(
+            provider=provider,
+            index=index,
+            tools=tools,
+            actions=LedgerExecutor(),
+            clock=clock,
+            jitter=random.random,
+            config=config,
+        )
+    return Services(
+        settings=settings,
+        sessions=sessions,
+        orchestrators=orchestrators,
+        indexes=indexes,
     )
-    return Services(settings=settings, sessions=sessions, orchestrator=orchestrator, index=index)
 
 
-def execute_and_record(services: Services, request: TriageRequest) -> TriageRun:
+def execute_and_record(services: Services, tenant_id: str, request: TriageRequest) -> TriageRun:
     """Return an existing idempotent run, or execute and persist a new one."""
     with services.sessions.begin() as session:
-        existing = session.scalar(select(Ticket).where(Ticket.external_id == request.external_id))
+        existing = session.scalar(
+            select(Ticket).where(
+                Ticket.tenant_id == tenant_id,
+                Ticket.external_id == request.external_id,
+            )
+        )
         if existing and existing.runs:
             return existing.runs[-1]
 
-    result = services.orchestrator.run(request)
+    result = services.orchestrator_for(tenant_id).run(request)
     with services.sessions.begin() as session:
         ticket = Ticket(
             id=uuid.uuid4().hex,
+            tenant_id=tenant_id,
             external_id=request.external_id,
             subject=request.subject,
             body=request.body,
@@ -126,20 +147,21 @@ def execute_and_record(services: Services, request: TriageRequest) -> TriageRun:
             received_at=result.started_at,
         )
         session.add(ticket)
-        run = _run_row(ticket.id, result)
+        run = _run_row(tenant_id, ticket.id, result)
         session.add(run)
-        _add_trace_rows(session, result)
+        _add_trace_rows(session, tenant_id, result)
         session.flush()
         session.expunge(run)
         return run
 
 
-def _run_row(ticket_id: str, result: RunResult) -> TriageRun:
+def _run_row(tenant_id: str, ticket_id: str, result: RunResult) -> TriageRun:
     resolution = result.resolution
     classification = result.classification
     action = resolution.recommended_action if resolution else None
     return TriageRun(
         id=result.run_id,
+        tenant_id=tenant_id,
         ticket_id=ticket_id,
         status=result.status.value,
         error_kind=result.error_kind.value if result.error_kind else None,
@@ -170,7 +192,7 @@ def _run_row(ticket_id: str, result: RunResult) -> TriageRun:
     )
 
 
-def _add_trace_rows(session: Session, result: RunResult) -> None:
+def _add_trace_rows(session: Session, tenant_id: str, result: RunResult) -> None:
     for step in result.steps:
         session.add(
             RunStep(
@@ -207,6 +229,7 @@ def _add_trace_rows(session: Session, result: RunResult) -> None:
         chunk = item.chunk
         session.add(
             EvidenceRecord(
+                tenant_id=tenant_id,
                 run_id=result.run_id,
                 chunk_id=chunk.chunk_id,
                 document_id=chunk.document_id,
@@ -239,6 +262,7 @@ def _add_trace_rows(session: Session, result: RunResult) -> None:
     if result.status is TriageStatus.NEEDS_HUMAN_REVIEW:
         session.add(
             Review(
+                tenant_id=tenant_id,
                 run_id=result.run_id,
                 state="pending",
                 reasons=",".join(r.value for r in result.escalation_reasons),

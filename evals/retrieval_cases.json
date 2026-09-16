@@ -1,0 +1,67 @@
+[
+  {
+    "id": "password-reset",
+    "query": "I forgot my password and need a reset link",
+    "relevant_chunk_ids": ["account-access@2026-03-10#password-reset"]
+  },
+  {
+    "id": "locked-account",
+    "query": "Too many login attempts locked my account",
+    "relevant_chunk_ids": ["account-access@2026-03-10#locked-accounts"]
+  },
+  {
+    "id": "mfa-device-lost",
+    "query": "I no longer have the phone used for multi factor authentication",
+    "relevant_chunk_ids": ["account-access@2026-03-10#multi-factor-authentication-recovery"]
+  },
+  {
+    "id": "damaged-goods",
+    "query": "The item arrived broken and I want my money back",
+    "relevant_chunk_ids": ["refund-policy@2026-02-01#refunds-for-damaged-or-defective-goods"]
+  },
+  {
+    "id": "standard-refund",
+    "query": "What is the standard customer refund window?",
+    "relevant_chunk_ids": ["refund-policy@2026-02-01#standard-refund-window"]
+  },
+  {
+    "id": "late-delivery",
+    "query": "My delivery is late and tracking has not updated",
+    "relevant_chunk_ids": ["shipping-policy@2026-01-15#late-deliveries"]
+  },
+  {
+    "id": "lost-parcel",
+    "query": "The parcel never showed up",
+    "relevant_chunk_ids": ["shipping-policy@2026-01-15#lost-parcels"]
+  },
+  {
+    "id": "customs",
+    "query": "Who pays customs duties for an international shipment?",
+    "relevant_chunk_ids": ["shipping-policy@2026-01-15#international-shipping-and-customs"]
+  },
+  {
+    "id": "cancel-subscription",
+    "query": "How do I cancel my subscription?",
+    "relevant_chunk_ids": ["subscription-policy@2026-02-20#cancellation"]
+  },
+  {
+    "id": "enterprise-seats",
+    "query": "We need to reduce seats on our enterprise agreement",
+    "relevant_chunk_ids": ["subscription-policy@2026-02-20#seat-changes-on-enterprise-agreements"]
+  },
+  {
+    "id": "unsupported-printer",
+    "query": "How do I replace toner in a laser printer?",
+    "relevant_chunk_ids": []
+  },
+  {
+    "id": "unsupported-weather",
+    "query": "Will it rain in Osaka tomorrow?",
+    "relevant_chunk_ids": []
+  },
+  {
+    "id": "unsupported-tax",
+    "query": "Calculate corporation tax for a Canadian subsidiary",
+    "relevant_chunk_ids": []
+  }
+]

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import secrets
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Annotated, Any, cast
 
@@ -16,6 +17,7 @@ from app.api.schemas import ReviewDecision, RunSummary, TicketCreate
 from app.config import get_settings
 from app.db.models import Review, TriageRun
 from app.db.session import create_all, create_db_engine, create_session_factory
+from app.metrics import collect_metrics
 from app.services import Services, build_services, execute_and_record
 from app.workflow.orchestrator import TriageRequest
 
@@ -37,16 +39,26 @@ def services(request: Request) -> Services:
     return cast(Services, request.app.state.services)
 
 
+@dataclass(frozen=True, slots=True)
+class TenantContext:
+    tenant_id: str
+
+
 def authenticate(
     request: Request,
     x_api_key: Annotated[str | None, Header()] = None,
-) -> None:
-    expected = services(request).settings.api_key.get_secret_value()
-    if x_api_key != expected:
+) -> TenantContext:
+    supplied = x_api_key or ""
+    matched_tenant: str | None = None
+    for tenant_id, configured in services(request).settings.configured_tenant_api_keys.items():
+        if secrets.compare_digest(supplied, configured.get_secret_value()):
+            matched_tenant = tenant_id
+    if matched_tenant is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
+    return TenantContext(tenant_id=matched_tenant)
 
 
-Auth = Annotated[None, Depends(authenticate)]
+Auth = Annotated[TenantContext, Depends(authenticate)]
 ServiceDep = Annotated[Services, Depends(services)]
 
 
@@ -79,32 +91,36 @@ def health(svc: ServiceDep) -> dict[str, Any]:
     return {
         "status": "ok",
         "provider": svc.settings.llm_provider,
-        "knowledge_chunks": svc.index.chunk_count,
     }
 
 
 @app.post("/v1/triage", response_model=RunSummary)
-def triage(payload: TicketCreate, _auth: Auth, svc: ServiceDep) -> RunSummary:
+def triage(payload: TicketCreate, auth: Auth, svc: ServiceDep) -> RunSummary:
     if len(payload.body) > svc.settings.max_ticket_body_chars:
         raise HTTPException(status_code=422, detail="Ticket body exceeds configured limit")
-    run = execute_and_record(svc, TriageRequest(**payload.model_dump()))
+    run = execute_and_record(svc, auth.tenant_id, TriageRequest(**payload.model_dump()))
     return summarize(run)
 
 
 @app.get("/v1/runs/{run_id}", response_model=RunSummary)
-def get_run(run_id: str, _auth: Auth, svc: ServiceDep) -> RunSummary:
+def get_run(run_id: str, auth: Auth, svc: ServiceDep) -> RunSummary:
     with svc.sessions() as session:
-        run = session.get(TriageRun, run_id)
+        run = session.scalar(
+            select(TriageRun).where(
+                TriageRun.id == run_id,
+                TriageRun.tenant_id == auth.tenant_id,
+            )
+        )
         if run is None:
             raise HTTPException(status_code=404, detail="Run not found")
         return summarize(run)
 
 
 @app.get("/v1/runs/{run_id}/trace")
-def get_trace(run_id: str, _auth: Auth, svc: ServiceDep) -> dict[str, Any]:
+def get_trace(run_id: str, auth: Auth, svc: ServiceDep) -> dict[str, Any]:
     query = (
         select(TriageRun)
-        .where(TriageRun.id == run_id)
+        .where(TriageRun.id == run_id, TriageRun.tenant_id == auth.tenant_id)
         .options(
             selectinload(TriageRun.steps),
             selectinload(TriageRun.llm_calls),
@@ -161,9 +177,11 @@ def get_trace(run_id: str, _auth: Auth, svc: ServiceDep) -> dict[str, Any]:
 
 
 @app.get("/v1/reviews")
-def list_reviews(_auth: Auth, svc: ServiceDep) -> list[dict[str, Any]]:
+def list_reviews(auth: Auth, svc: ServiceDep) -> list[dict[str, Any]]:
     with svc.sessions() as session:
-        rows = session.scalars(select(Review).order_by(Review.created_at)).all()
+        rows = session.scalars(
+            select(Review).where(Review.tenant_id == auth.tenant_id).order_by(Review.created_at)
+        ).all()
         return [
             {
                 "run_id": row.run_id,
@@ -177,10 +195,15 @@ def list_reviews(_auth: Auth, svc: ServiceDep) -> list[dict[str, Any]]:
 
 @app.post("/v1/reviews/{run_id}")
 def decide_review(
-    run_id: str, decision: ReviewDecision, _auth: Auth, svc: ServiceDep
+    run_id: str, decision: ReviewDecision, auth: Auth, svc: ServiceDep
 ) -> dict[str, str]:
     with svc.sessions.begin() as session:
-        review = session.scalar(select(Review).where(Review.run_id == run_id))
+        review = session.scalar(
+            select(Review).where(
+                Review.run_id == run_id,
+                Review.tenant_id == auth.tenant_id,
+            )
+        )
         if review is None:
             raise HTTPException(status_code=404, detail="Pending review not found")
         if review.state != "pending":
@@ -194,5 +217,12 @@ def decide_review(
 
 
 @app.get("/v1/knowledge")
-def knowledge(_auth: Auth, svc: ServiceDep) -> list[dict[str, Any]]:
-    return [asdict(summary) for summary in svc.index.documents]
+def knowledge(auth: Auth, svc: ServiceDep) -> list[dict[str, Any]]:
+    return [asdict(summary) for summary in svc.index_for(auth.tenant_id).documents]
+
+
+@app.get("/v1/metrics")
+def metrics(auth: Auth, svc: ServiceDep) -> dict[str, Any]:
+    """Return content-free operational aggregates for the authenticated tenant."""
+    with svc.sessions() as session:
+        return collect_metrics(session, auth.tenant_id)

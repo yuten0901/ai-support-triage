@@ -14,10 +14,12 @@ they live in configuration rather than in the code that happens to enforce them.
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -46,6 +48,15 @@ class Settings(BaseSettings):
 
     # --- Inbound authentication --------------------------------------------
     api_key: SecretStr = Field(default=SecretStr("dev-triage-api-key"))
+    tenant_api_keys: dict[str, SecretStr] = Field(
+        default_factory=dict,
+        description=(
+            "Optional JSON map of tenant id to API key. When set, TENANT_KNOWLEDGE_DIRS and "
+            "TENANT_DATA_DIRS must contain exactly the same tenant ids."
+        ),
+    )
+    tenant_knowledge_dirs: dict[str, str] = Field(default_factory=dict)
+    tenant_data_dirs: dict[str, str] = Field(default_factory=dict)
     max_ticket_body_chars: int = Field(default=20_000, ge=100)
 
     # --- LLM provider ------------------------------------------------------
@@ -143,6 +154,58 @@ class Settings(BaseSettings):
         if value not in {"json", "console"}:
             raise ValueError("log_format must be 'json' or 'console'")
         return value
+
+    @model_validator(mode="after")
+    def _validate_tenant_configuration(self) -> Settings:
+        """Require a complete, non-ambiguous boundary for multi-tenant mode."""
+        if not self.tenant_api_keys:
+            if self.tenant_knowledge_dirs or self.tenant_data_dirs:
+                raise ValueError(
+                    "tenant directories require TENANT_API_KEYS; partial tenant configuration "
+                    "is not allowed"
+                )
+            return self
+
+        tenant_ids = set(self.tenant_api_keys)
+        if tenant_ids != set(self.tenant_knowledge_dirs):
+            raise ValueError("TENANT_KNOWLEDGE_DIRS must contain exactly the TENANT_API_KEYS ids")
+        if tenant_ids != set(self.tenant_data_dirs):
+            raise ValueError("TENANT_DATA_DIRS must contain exactly the TENANT_API_KEYS ids")
+        if any(not tenant_id or len(tenant_id) > 64 for tenant_id in tenant_ids):
+            raise ValueError("tenant ids must contain 1 to 64 characters")
+
+        key_values = [secret.get_secret_value() for secret in self.tenant_api_keys.values()]
+        if len(key_values) != len(set(key_values)):
+            raise ValueError("tenant API keys must be unique")
+        self._require_disjoint_directories(self.tenant_knowledge_dirs, "knowledge")
+        self._require_disjoint_directories(self.tenant_data_dirs, "data")
+        return self
+
+    @staticmethod
+    def _require_disjoint_directories(paths: dict[str, str], label: str) -> None:
+        """Reject filesystem aliases and nested roots across tenants."""
+        resolved = {
+            tenant_id: Path(os.path.normcase(str(Path(path).resolve())))
+            for tenant_id, path in paths.items()
+        }
+        items = list(resolved.items())
+        for index, (left_id, left) in enumerate(items):
+            for right_id, right in items[index + 1 :]:
+                if left == right or left in right.parents or right in left.parents:
+                    raise ValueError(
+                        f"tenant {label} directories must be disjoint: {left_id} and {right_id}"
+                    )
+
+    @property
+    def configured_tenant_api_keys(self) -> dict[str, SecretStr]:
+        """Resolved tenant credentials, including the single-tenant compatibility mode."""
+        return self.tenant_api_keys or {"default": self.api_key}
+
+    def knowledge_dir_for(self, tenant_id: str) -> str:
+        return self.tenant_knowledge_dirs.get(tenant_id, self.knowledge_dir)
+
+    def data_dir_for(self, tenant_id: str) -> str:
+        return self.tenant_data_dirs.get(tenant_id, "data")
 
     @property
     def is_sqlite(self) -> bool:

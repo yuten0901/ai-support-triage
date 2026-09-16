@@ -22,7 +22,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, inspect
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings
@@ -83,6 +83,25 @@ def create_all(engine: Engine) -> None:
     than shipping a migrations directory with one revision in it.
     """
     Base.metadata.create_all(engine)
+    required_tenant_columns = {
+        "tickets": "tenant_id",
+        "triage_runs": "tenant_id",
+        "evidence_items": "tenant_id",
+        "reviews": "tenant_id",
+    }
+    inspector = inspect(engine)
+    stale = [
+        f"{table}.{column}"
+        for table, column in required_tenant_columns.items()
+        if column not in {item["name"] for item in inspector.get_columns(table)}
+    ]
+    if stale:
+        raise RuntimeError(
+            "Database schema predates tenant isolation and cannot be upgraded with create_all: "
+            + ", ".join(stale)
+            + ". This portfolio has no production migration promise; back up any local demo data "
+            "and recreate the database."
+        )
 
 
 @contextmanager

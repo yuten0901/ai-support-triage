@@ -1,15 +1,17 @@
 from datetime import UTC, date, datetime, timedelta
 
 import pytest
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, SecretStr
 
 from app.ai.schemas import Citation, RecommendedAction, Resolution, TicketCategory
+from app.config import Settings
 from app.domain.clock import FrozenClock
 from app.domain.evidence import Chunk, EvidenceSet, RetrievedChunk
 from app.domain.policy import precheck, scan_for_injection
 from app.domain.states import ActionKind
 from app.rag.index import KnowledgeIndex
 from app.rag.loader import load_documents
+from app.rag.protocol import Retriever
 from app.tools.builtin import RefundRules, evaluate_refund_eligibility
 from app.tools.registry import Tool, ToolOutcome, ToolRegistry
 from app.tools.store import Account, Order
@@ -111,6 +113,16 @@ def test_retrieval_returns_nothing_for_unrelated_query() -> None:
     assert not index.search("quantum banana astronomy", top_k=4, min_score=0.15)
 
 
+def test_bm25_index_satisfies_retriever_contract() -> None:
+    index = KnowledgeIndex(load_documents(__import__("pathlib").Path("knowledge")))
+    retriever: Retriever = index
+
+    evidence = retriever.search("refund damaged order", top_k=2, min_score=0.01)
+
+    assert evidence
+    assert retriever.get_chunk(evidence.items[0].chunk.chunk_id) == evidence.items[0].chunk
+
+
 @pytest.mark.parametrize(
     "days,final_sale,eligible", [(5, False, True), (31, False, False), (4, True, False)]
 )
@@ -140,3 +152,37 @@ def test_frozen_clock_advances_without_sleeping() -> None:
     clock = FrozenClock(datetime(2026, 8, 24, tzinfo=UTC))
     clock.sleep(2.5)
     assert clock.monotonic() == 1002.5
+
+
+def test_multi_tenant_configuration_rejects_partial_boundaries() -> None:
+    with pytest.raises(ValueError, match="TENANT_KNOWLEDGE_DIRS"):
+        Settings(
+            tenant_api_keys={"a": SecretStr("key-a"), "b": SecretStr("key-b")},
+            tenant_knowledge_dirs={"a": "knowledge-a"},
+            tenant_data_dirs={"a": "data-a", "b": "data-b"},
+        )
+
+
+def test_multi_tenant_configuration_rejects_shared_credentials_and_directories() -> None:
+    with pytest.raises(ValueError, match="API keys must be unique"):
+        Settings(
+            tenant_api_keys={"a": SecretStr("same-key"), "b": SecretStr("same-key")},
+            tenant_knowledge_dirs={"a": "knowledge-a", "b": "knowledge-b"},
+            tenant_data_dirs={"a": "data-a", "b": "data-b"},
+        )
+    with pytest.raises(ValueError, match="knowledge directories must be disjoint"):
+        Settings(
+            tenant_api_keys={"a": SecretStr("key-a"), "b": SecretStr("key-b")},
+            tenant_knowledge_dirs={"a": "knowledge", "b": "knowledge"},
+            tenant_data_dirs={"a": "data-a", "b": "data-b"},
+        )
+
+
+def test_multi_tenant_configuration_rejects_directory_aliases(tmp_path) -> None:
+    shared = tmp_path / "shared"
+    with pytest.raises(ValueError, match="knowledge directories must be disjoint"):
+        Settings(
+            tenant_api_keys={"a": SecretStr("key-a"), "b": SecretStr("key-b")},
+            tenant_knowledge_dirs={"a": str(shared), "b": str(shared / ".." / "shared")},
+            tenant_data_dirs={"a": str(tmp_path / "data-a"), "b": str(tmp_path / "data-b")},
+        )

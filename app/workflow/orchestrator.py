@@ -86,7 +86,7 @@ from app.domain.states import (
     StepStatus,
     TriageStatus,
 )
-from app.rag.index import KnowledgeIndex
+from app.rag.protocol import Retriever
 from app.tools.actions import ActionExecutionError, ActionExecutor, ActionResult, idempotency_key
 from app.tools.registry import ToolOutcome, ToolPermanentError, ToolRegistry, ToolTransientError
 from app.workflow.grounding import mark_cited, validate_resolution
@@ -150,6 +150,9 @@ class RunResult:
     #: dollar budget could not be enforced for the whole run. Surfaced rather
     #: than hidden: an unenforceable budget is an operational fact.
     cost_budget_enforceable: bool = True
+    #: Retrieved chunks that resembled instructions to the model and were
+    #: removed before prompt construction.
+    blocked_evidence_chunk_ids: list[str] = field(default_factory=list)
 
     @property
     def escalation_reasons(self) -> list[EscalationReason]:
@@ -177,7 +180,7 @@ class Orchestrator:
         self,
         *,
         provider: LLMProvider,
-        index: KnowledgeIndex,
+        index: Retriever,
         tools: ToolRegistry,
         actions: ActionExecutor,
         clock: Clock,
@@ -305,14 +308,36 @@ class Orchestrator:
             top_k=self._config.retrieval_top_k,
             min_score=self._config.retrieval_min_score,
         )
+        safe_items = []
+        knowledge_patterns: list[str] = []
+        for item in evidence.items:
+            scan = scan_for_injection(item.chunk.heading, item.chunk.text)
+            if scan.suspected:
+                result.blocked_evidence_chunk_ids.append(item.chunk.chunk_id)
+                knowledge_patterns.extend(scan.patterns)
+            else:
+                safe_items.append(item)
+        if result.blocked_evidence_chunk_ids:
+            evidence = EvidenceSet(items=safe_items)
+            result.injection = InjectionScan(
+                suspected=True,
+                patterns=tuple(dict.fromkeys((*result.injection.patterns, *knowledge_patterns))),
+            )
         result.evidence = evidence
+        retrieval_note = (
+            f"{len(evidence)} chunk(s) above score {self._config.retrieval_min_score}"
+            + (f"; audiences {sorted(evidence.audiences)}" if evidence.audiences else "")
+        )
+        if result.blocked_evidence_chunk_ids:
+            retrieval_note += (
+                f"; blocked {len(result.blocked_evidence_chunk_ids)} injection-shaped chunk(s)"
+            )
         self._add_step(
             result,
             StepKind.RETRIEVE,
             StepStatus.OK if evidence else StepStatus.DECLINED,
             self._elapsed_ms(started),
-            f"{len(evidence)} chunk(s) above score {self._config.retrieval_min_score}"
-            + (f"; audiences {sorted(evidence.audiences)}" if evidence.audiences else ""),
+            retrieval_note,
         )
 
         # --- tools ---------------------------------------------------------

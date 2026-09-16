@@ -33,40 +33,45 @@ def run(cases_path: Path, output_path: Path) -> dict[str, object]:
     with tempfile.TemporaryDirectory() as temp:
         settings = Settings(database_url=f"sqlite+pysqlite:///{Path(temp) / 'eval.sqlite3'}")
         engine = create_db_engine(settings)
-        create_all(engine)
-        services = build_services(settings, create_session_factory(engine))
-        for case in cases:
-            result = services.orchestrator.run(
-                TriageRequest(external_id=case["id"], subject=case["subject"], body=case["body"])
-            )
-            failures: list[str] = []
-            category = result.classification.category.value if result.classification else None
-            if case.get("status") and result.status.value != case["status"]:
-                failures.append(f"status: expected {case['status']}, got {result.status.value}")
-            if case.get("category") and category != case["category"]:
-                failures.append(f"category: expected {case['category']}, got {category}")
-            grounding_error = (
-                validate_resolution(result.resolution, result.evidence)
-                if result.resolution
-                else None
-            )
-            results.append(
-                CaseResult(
-                    case_id=case["id"],
-                    passed=not failures and grounding_error is None,
-                    status=result.status.value,
-                    category=category,
-                    grounded=grounding_error is None,
-                    provider_calls=result.provider_call_count,
-                    cost_usd=(
-                        round(result.estimated_cost_usd, 6)
-                        if result.estimated_cost_usd is not None
-                        else None
-                    ),
-                    failures=tuple(failures + ([grounding_error] if grounding_error else [])),
+        try:
+            create_all(engine)
+            services = build_services(settings, create_session_factory(engine))
+            tenant_id = next(iter(settings.configured_tenant_api_keys))
+            for case in cases:
+                result = services.orchestrator_for(tenant_id).run(
+                    TriageRequest(
+                        external_id=case["id"], subject=case["subject"], body=case["body"]
+                    )
                 )
-            )
-        engine.dispose()
+                failures: list[str] = []
+                category = result.classification.category.value if result.classification else None
+                if case.get("status") and result.status.value != case["status"]:
+                    failures.append(f"status: expected {case['status']}, got {result.status.value}")
+                if case.get("category") and category != case["category"]:
+                    failures.append(f"category: expected {case['category']}, got {category}")
+                grounding_error = (
+                    validate_resolution(result.resolution, result.evidence)
+                    if result.resolution
+                    else None
+                )
+                results.append(
+                    CaseResult(
+                        case_id=case["id"],
+                        passed=not failures and grounding_error is None,
+                        status=result.status.value,
+                        category=category,
+                        grounded=grounding_error is None,
+                        provider_calls=result.provider_call_count,
+                        cost_usd=(
+                            round(result.estimated_cost_usd, 6)
+                            if result.estimated_cost_usd is not None
+                            else None
+                        ),
+                        failures=tuple(failures + ([grounding_error] if grounding_error else [])),
+                    )
+                )
+        finally:
+            engine.dispose()
     passed = sum(item.passed for item in results)
     report: dict[str, object] = {
         "summary": {
