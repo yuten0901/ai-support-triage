@@ -1,0 +1,52 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: Eyebrow,Arial,28,&H00F9E867,&H00FFFFFF,&H0008111F,&H00000000,-1,0,0,0,100,100,3,0,1,0,0,7,0,0,0,1
+Style: Title,Arial,92,&H00FCFAF8,&H00FFFFFF,&H0008111F,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1
+Style: Detail,Arial,36,&H00E1D5CB,&H00FFFFFF,&H0008111F,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1
+Style: Proof,Arial,29,&H00F0E8E2,&H00FFFFFF,&H0038210F,&H0038210F,0,0,0,0,100,100,0,0,3,1,0,7,0,0,0,1
+Style: Footer,Arial,24,&H008B7464,&H00FFFFFF,&H0008111F,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+Dialogue: 0,0:00:00.00,0:00:14.00,Eyebrow,,0,0,0,,{\pos(140,165)}PORTFOLIO WALKTHROUGH
+Dialogue: 0,0:00:00.00,0:00:14.00,Title,,0,0,0,,{\pos(140,300)}AI SUPPORT\NTRIAGE
+Dialogue: 0,0:00:00.00,0:00:14.00,Detail,,0,0,0,,{\pos(145,590)}Evidence-grounded automation\Nwith deterministic safety boundaries
+Dialogue: 0,0:00:00.00,0:00:14.00,Proof,,0,0,0,,{\pos(170,710)}No paid API key required for this demonstration
+Dialogue: 0,0:00:00.00,0:00:14.00,Footer,,0,0,0,,{\pos(140,1000)}github.com/yuten0901/ai-support-triage
+Dialogue: 0,0:00:00.00,0:00:14.00,Footer,,0,0,0,,{\pos(1740,1000)}01 / 06
+Dialogue: 0,0:00:14.00,0:00:34.00,Eyebrow,,0,0,0,,{\pos(140,165)}ARCHITECTURE
+Dialogue: 0,0:00:14.00,0:00:34.00,Title,,0,0,0,,{\pos(140,300)}TENANT BOUNDARY\NBEFORE RETRIEVAL
+Dialogue: 0,0:00:14.00,0:00:34.00,Detail,,0,0,0,,{\pos(145,590)}Credential → tenant-scoped data → evidence\NLLM proposal → policy gate → audit trace
+Dialogue: 0,0:00:14.00,0:00:34.00,Proof,,0,0,0,,{\pos(170,710)}Cross-tenant object access returns 404
+Dialogue: 0,0:00:14.00,0:00:34.00,Footer,,0,0,0,,{\pos(140,1000)}github.com/yuten0901/ai-support-triage
+Dialogue: 0,0:00:14.00,0:00:34.00,Footer,,0,0,0,,{\pos(1740,1000)}02 / 06
+Dialogue: 0,0:00:34.00,0:00:54.00,Eyebrow,,0,0,0,,{\pos(140,165)}MEASURED RETRIEVAL
+Dialogue: 0,0:00:34.00,0:00:54.00,Title,,0,0,0,,{\pos(140,300)}HYBRID IMPROVES\NTHE FIXED TEST SET
+Dialogue: 0,0:00:34.00,0:00:54.00,Detail,,0,0,0,,{\pos(145,590)}Recall@4  1.00     MRR  0.95\NUnsupported rejection  1.00
+Dialogue: 0,0:00:34.00,0:00:54.00,Proof,,0,0,0,,{\pos(170,710)}13 labelled cases · BM25 remains the default
+Dialogue: 0,0:00:34.00,0:00:54.00,Footer,,0,0,0,,{\pos(140,1000)}github.com/yuten0901/ai-support-triage
+Dialogue: 0,0:00:34.00,0:00:54.00,Footer,,0,0,0,,{\pos(1740,1000)}03 / 06
+Dialogue: 0,0:00:54.00,0:01:16.00,Eyebrow,,0,0,0,,{\pos(140,165)}FAILURE PROOF
+Dialogue: 0,0:00:54.00,0:01:16.00,Title,,0,0,0,,{\pos(140,300)}5 / 5 SCENARIOS\NPASS THROUGH THE API
+Dialogue: 0,0:00:54.00,0:01:16.00,Detail,,0,0,0,,{\pos(145,590)}Outage · malformed output · unsupported query\Nduplicate delivery · cross-tenant access
+Dialogue: 0,0:00:54.00,0:01:16.00,Proof,,0,0,0,,{\pos(170,710)}Finite retry and repair budgets — no unbounded agent loop
+Dialogue: 0,0:00:54.00,0:01:16.00,Footer,,0,0,0,,{\pos(140,1000)}github.com/yuten0901/ai-support-triage
+Dialogue: 0,0:00:54.00,0:01:16.00,Footer,,0,0,0,,{\pos(1740,1000)}04 / 06
+Dialogue: 0,0:01:16.00,0:01:38.00,Eyebrow,,0,0,0,,{\pos(140,165)}SAFE OUTCOMES
+Dialogue: 0,0:01:16.00,0:01:38.00,Title,,0,0,0,,{\pos(140,300)}REUSE, REFUSE,\NOR ROUTE TO A HUMAN
+Dialogue: 0,0:01:16.00,0:01:38.00,Detail,,0,0,0,,{\pos(145,590)}Duplicates reuse one persisted run\NMissing evidence never becomes a confident answer
+Dialogue: 0,0:01:16.00,0:01:38.00,Proof,,0,0,0,,{\pos(170,710)}The model advises; deterministic code decides
+Dialogue: 0,0:01:16.00,0:01:38.00,Footer,,0,0,0,,{\pos(140,1000)}github.com/yuten0901/ai-support-triage
+Dialogue: 0,0:01:16.00,0:01:38.00,Footer,,0,0,0,,{\pos(1740,1000)}05 / 06
+Dialogue: 0,0:01:38.00,0:02:00.00,Eyebrow,,0,0,0,,{\pos(140,165)}VERIFIABLE DELIVERY
+Dialogue: 0,0:01:38.00,0:02:00.00,Title,,0,0,0,,{\pos(140,300)}46 TESTS\NTWO DATABASE ENGINES
+Dialogue: 0,0:01:38.00,0:02:00.00,Detail,,0,0,0,,{\pos(145,590)}End-to-end evaluation  8/8\NSeeded defects detected  4/4
+Dialogue: 0,0:01:38.00,0:02:00.00,Proof,,0,0,0,,{\pos(170,710)}Public reports and honest limits are linked in the repository
+Dialogue: 0,0:01:38.00,0:02:00.00,Footer,,0,0,0,,{\pos(140,1000)}github.com/yuten0901/ai-support-triage
+Dialogue: 0,0:01:38.00,0:02:00.00,Footer,,0,0,0,,{\pos(1740,1000)}06 / 06

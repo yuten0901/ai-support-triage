@@ -1,0 +1,29 @@
+1
+00:00:00,000 --> 00:00:14,000
+AI Support Triage
+Evidence-grounded automation. Deterministic safety boundaries.
+
+2
+00:00:14,000 --> 00:00:34,000
+Credentials select the tenant before data, retrieval, tools, or metrics.
+The model proposes. Deterministic code decides and records every step.
+
+3
+00:00:34,000 --> 00:00:54,000
+BM25 stays the fast default. Hybrid improved the fixed 13-case set:
+Recall@4 1.00 · MRR 0.95 · unsupported rejection 1.00.
+
+4
+00:00:54,000 --> 00:01:16,000
+5/5 API failure scenarios pass: unsupported, duplicate, cross-tenant,
+provider outage, and malformed model output.
+
+5
+00:01:16,000 --> 00:01:38,000
+Duplicates reuse one run; another tenant receives 404 for its ID.
+Unsupported questions return insufficient_evidence — never an invention.
+
+6
+00:01:38,000 --> 00:02:00,000
+46 tests · SQLite/PostgreSQL CI · 8/8 evaluation · 4/4 mutations.
+Public machine-readable evidence, with no production-traffic claim.

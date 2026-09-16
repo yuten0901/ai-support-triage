@@ -1,6 +1,6 @@
 # Market-aligned upgrade plan
 
-**Status:** slices 1-4 verified; slice 3 excludes pgvector; slice 5 lacks only the walkthrough
+**Status:** slices 1-5 verified within the stated in-memory scope; pgvector remains conditional
 **Date:** 2026-09-16  
 **Reason:** recent Upwork fixed-price AI/RAG jobs repeatedly require tenant isolation, vector or
 hybrid retrieval, leakage testing, observability, Docker deployment, and client-readable evidence.
@@ -128,5 +128,6 @@ finding remains open.
   5/5 API-level failure demo proves unsupported, duplicate, cross-tenant, provider-outage, and
   malformed-output behavior. Tenant isolation tests fail if tenant predicates or retrieval
   partitioning are removed. A separate mutation runner still covers four foundational defects.
-- 2026-09-16 — Slice 5 in progress: the case study, architecture diagram, and machine-readable
-  reports are linked from the README. The captioned walkthrough remains pending.
+- 2026-09-16 — Slice 5: the case study, architecture diagram, machine-readable reports, and a
+  reproducible two-minute captioned walkthrough are linked from the README. The walkthrough is
+  generated from checked-in reports and refuses to build when the key evaluation gates fail.

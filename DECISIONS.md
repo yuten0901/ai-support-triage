@@ -39,3 +39,7 @@
   The script uses an isolated temporary database, injects deterministic provider failures, and
   writes a checked-in 5/5 report covering unsupported, duplicate, cross-tenant, outage, and invalid
   model-output behavior. This report will also be the source for the captioned walkthrough.
+- Generate the two-minute walkthrough from measured JSON reports and fail the build if the 5/5
+  failure demo or 8/8 end-to-end gate regresses. Keep spoken English optional: the MP4 has burned-in
+  concise captions and a separate SRT file. This repository is now complete for its intended
+  in-memory portfolio scope; pgvector is demand-driven rather than a keyword-driven addition.

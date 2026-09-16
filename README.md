@@ -13,6 +13,7 @@ approval rules before any write action. The default provider is deterministic an
 same boundary supports Anthropic when credentials are supplied.
 
 **Evidence:** [client-facing case study](docs/case-study.md) ·
+[two-minute captioned walkthrough](docs/video/ai-support-triage-walkthrough.mp4) ·
 [architecture and trust boundaries](docs/architecture.md) ·
 [evaluation method and measured limits](docs/evaluation.md) ·
 [five-scenario failure proof](reports/failure-demo.json)
@@ -78,6 +79,7 @@ default without any embedding download or model process.
 .\.venv\Scripts\python.exe -m evals.retrieval_runner
 .\.venv\Scripts\python.exe scripts\verify_mutations.py
 .\.venv\Scripts\python.exe scripts\run_failure_demo.py
+.\.venv\Scripts\python.exe scripts\build_walkthrough_video.py
 ```
 
 The suite currently contains 46 passing tests, and the checked-in evaluation report records 8/8

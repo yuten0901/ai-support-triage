@@ -9,7 +9,7 @@ next: STATUS.md 本文を参照
 
 # Status
 
-- State: production-ready portfolio demonstration; market-aligned v2 slices 1-4 implemented
+- State: production-ready portfolio demonstration; market-aligned v2 slices 1-5 implemented
 - Conclusion date: 2026-09-16
 - Result: tenant data/retrieval boundaries, a replaceable retrieval contract, dense/RRF experiment
   path, measured BM25/hybrid retrieval, content-free tenant metrics, and a 5/5 API-level failure
@@ -20,7 +20,7 @@ next: STATUS.md 本文を参照
   fake provider is useful only when it exercises the same contracts and workflow as production.
 - Honest gaps: real Anthropic calls and local PostgreSQL were unavailable; Anthropic is implemented
   and type-checked, while PostgreSQL is assigned to CI.
-- Next: create a 90-150 second captioned walkthrough from the checked-in deterministic demo. Add
-  durable pgvector indexing and clean-container proof only if a target engagement requires corpus
-  scale beyond this in-memory demo; BM25 remains the small-corpus default because of its latency
-  and simplicity.
+- Next: stop expanding this repository unless a target engagement requires durable pgvector
+  indexing or clean-container proof at larger corpus scale. The buyer-facing walkthrough is now
+  generated from checked-in measured reports; BM25 remains the small-corpus default because of its
+  latency and simplicity.
